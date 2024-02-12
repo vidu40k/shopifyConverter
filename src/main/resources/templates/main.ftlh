@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="../static/css/main.css">
+    <link rel="stylesheet" href="/css/main.css">
 
     <meta charset="UTF-8">
     <title>Title</title>
@@ -9,38 +9,68 @@
 <body>
 
 
-<div class="container">
-
-    <form action="/converter/convert" method="get">
-        <div class="inputForm">
-           <h2> <label for="userInput">Input Url:</label><br></h2>
-            <input class="reqInput" type="text" id="requestUrl" name="requestUrl"><br>
-            <input class="submit_btn" type="submit" value="Convert">
-        </div>
+<div id="passwordForm">
+    <label for="password">Please enter the password:</label><br>
+    <input type="password" id="password" name="password">
+    <button onclick="verifyPassword()">Submit</button>
+</div>
 
 
-    </form>
+<div class="container" style="display: none">
 
-    <div class="result_items">
-
-        <div class="result_item">
-            <#if productFilePath?? >
-                <h2 style="font-family: sans-serif;font-size: large"> Download <a href="../static/products.csv" download="product.csv">product.csv</a> file</h2>
-                <h6> Was created on ${createDate}</h6>
-            </#if>
-        </div>
-
-        <div class="result_item">
-            <#if inventoryFilePath?? >
-                <h2 style="font-family: sans-serif;font-size: large"> Download <a href="../static/inventory.csv" download="inventory.csv">inventory.csv</a> file</h2>
-                <h6> Was created on ${createDate}</h6>
-            </#if>
-        </div>
-    </div>
-
+    <table>
+        <tr>
+            <th><p>Revit</p></th>
+            <th><p> Download <a href="/converter/downloadProduct">product.csv</a></p></th>
+            <th><p> Download <a href="/converter/downloadInventory">inventory.csv</a></p></th>
+        </tr>
+        <tr hidden="hidden">
+            <td>LinkInt</td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr hidden="hidden">
+            <td>Whitesmoto</td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr hidden="hidden">
+            <td>Motonational</td>
+            <td></td>
+            <td></td>
+        </tr>
+    </table>
 
 </div>
 
 
+<script>
+    async function verifyPassword() {
+        const password = document.getElementById("password").value;
+
+        try {
+            const response = await fetch('/converter/verifyPassword', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({password: password})
+            });
+
+            const data = await response.json();
+            console.log(data);
+            if (data.valid) {
+                // Пароль верный, показать содержимое страницы
+                document.getElementById("passwordForm").style.display = "none";
+                document.getElementById("container").style.display = "flex";
+            } else {
+                // Пароль неверный, вывести предупреждение
+                alert("Incorrect password. Please try again.");
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+</script>
 </body>
 </html>

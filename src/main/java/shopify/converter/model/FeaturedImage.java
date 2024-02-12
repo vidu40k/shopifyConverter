@@ -3,6 +3,8 @@ package shopify.converter.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class FeaturedImage {
 
@@ -15,5 +17,7 @@ public class FeaturedImage {
     @JsonProperty("src")
     private String src;
 
+    @JsonProperty("variant_ids")
+    private List<String> variantIds;
 }
 

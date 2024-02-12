@@ -8,52 +8,41 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import shopify.converter.service.ProductService;
 
-import java.io.File;
 import java.net.MalformedURLException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileTime;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/converter")
 @RequiredArgsConstructor
 public class ProductController {
 
-    private static final String PRODUCT_CSV_PATH = "src/main/resources/static/products.csv";
-    private static final String INVENTORY_CSV_PATH = "src/main/resources/static/inventory.csv";
+    private static final String REVIT_REQUEST = "https://www.revitaustralia.com.au/products.json?limit=250&page=1";
+    public static final String PRODUCT_CSV_PATH = "products.csv";
+    public static final String INVENTORY_CSV_PATH = "inventory.csv";
+    private static final String PASSWORD = "rouzer";
+
     private final ProductService productService;
 
-    @GetMapping("/convert")
-    public String convert(@RequestParam(name = "requestUrl") String request, Model model) {
 
-        productService.getFileContent(request);
-
-        model.addAttribute("createDate", getFileCreationDateString(PRODUCT_CSV_PATH));
-        model.addAttribute("request", request);
-
-        return "result";
-    }
-
-    @GetMapping("/main")
+    @GetMapping("/index")
     public String getPage() {
-
-        new File(PRODUCT_CSV_PATH).delete();
-        new File(INVENTORY_CSV_PATH).delete();
 
         return "main";
     }
 
+
+
     @GetMapping("/downloadProduct")
     public ResponseEntity<Resource> downloadProductFile() {
+
+        productService.getFileContent(REVIT_REQUEST);
+
         Path path = Paths.get(PRODUCT_CSV_PATH);
         Resource resource = null;
         try {
@@ -63,7 +52,7 @@ public class ProductController {
         }
 
         if (resource == null || !resource.exists() || !resource.isReadable()) {
-            throw new RuntimeException("Не удается найти файл или его прочитать: product.csv");
+            throw new RuntimeException("Can't find the file or read it: product.csv");
         }
 
         return ResponseEntity.ok()
@@ -74,6 +63,9 @@ public class ProductController {
 
     @GetMapping("/downloadInventory")
     public ResponseEntity<Resource> downloadInventoryFile() {
+
+        productService.getFileContent(REVIT_REQUEST);
+
         Path path = Paths.get(INVENTORY_CSV_PATH);
         Resource resource = null;
         try {
@@ -83,7 +75,7 @@ public class ProductController {
         }
 
         if (resource == null || !resource.exists() || !resource.isReadable()) {
-            throw new RuntimeException("Не удается найти файл или его прочитать: inventory.csv");
+            throw new RuntimeException("Can't find the file or read it: inventory.csv");
         }
 
         return ResponseEntity.ok()
@@ -93,18 +85,20 @@ public class ProductController {
     }
 
 
-    private String getFileCreationDateString(String filePath) {
-        Path path = Paths.get(filePath);
-        try {
-            BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
-            FileTime creationTime = attr.lastModifiedTime();
-            Date date = new Date(creationTime.toMillis());
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-            return dateFormat.format(date);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+
+    @PostMapping("/verifyPassword")
+    @ResponseBody
+    public Map<String, Boolean> verifyPassword(@RequestBody String password) {
+        Map<String, Boolean> response = new HashMap<>();
+
+        boolean isValid = checkPassword(password);
+
+        response.put("valid", isValid);
+        return response;
+    }
+
+    private boolean checkPassword(String password) {
+        return PASSWORD.equals(password);
     }
 
 }

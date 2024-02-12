@@ -34,7 +34,7 @@ public class Product {
     private List<Variants> variants;
 
 
-    @JsonProperty("Images")
+    @JsonProperty("images")
     private List<FeaturedImage> images;
 
     @JsonProperty("options")

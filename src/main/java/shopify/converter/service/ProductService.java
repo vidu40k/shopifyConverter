@@ -10,6 +10,7 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.HttpEntity;
 import org.springframework.stereotype.Service;
+import shopify.converter.controller.ProductController;
 import shopify.converter.model.Product;
 import shopify.converter.response.ProductsResponse;
 import shopify.converter.schema.CSVSchema;
@@ -21,10 +22,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +31,7 @@ public class ProductService {
 
     private final ProductConverter productConverter;
 
-    private ProductsResponse getProductResponse(String url) {
+    private ProductsResponse getProductResponse(String url) throws RuntimeException {
 
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpGet request = new HttpGet(url);
@@ -49,19 +47,16 @@ public class ProductService {
                 }
             }
         } catch (IOException e) {
-            throw new RuntimeException("Ошибка при выполнении запроса: " + e.getMessage(), e);
+            throw new RuntimeException("Request error: " + e.getMessage(), e);
         }
 
         return null;
     }
 
-    public void getFileContent(String url) {
+    public void getFileContent(String url) throws RuntimeException {
 
         ProductsResponse productsResponse = getProductResponse(url);
-
         if (productsResponse != null) {
-            List<String> headLine = getHeadList(productConverter.convertProduct(productsResponse.getProducts().get(0)).get(0));
-            List<String> inventoryHeadLine = getHeadList(productConverter.convertToInventory(productsResponse.getProducts().get(0)).get(0));
 
             List<LinkedHashMap<String, String>> productsMap = new ArrayList<>();
             List<LinkedHashMap<String, String>> inventoriesMap = new ArrayList<>();
@@ -70,20 +65,67 @@ public class ProductService {
 
                 List<ProductSchema> products = productConverter.convertProduct(product);
                 for (ProductSchema productSchema : products) {
-                    productsMap.add(getProductMap(productSchema, headLine));
+                    productsMap.add(getProductMap(productSchema));
                 }
 
                 List<InventorySchema> inventorySchemas = productConverter.convertToInventory(product);
                 for (InventorySchema inventorySchema : inventorySchemas) {
-                    inventoriesMap.add(getProductMap(inventorySchema, inventoryHeadLine));
+                    inventoriesMap.add(getProductMap(inventorySchema));
                 }
             }
+            productsMap = removeEmptyFields(productsMap);
+            List<String> headLine = getAllKeysFromProduct(productsMap.get(0));
 
-            writeMapToCsv(headLine, productsMap, "src/main/resources/static/products.csv");
-            writeMapToCsv(inventoryHeadLine, inventoriesMap, "src/main/resources/static/inventory.csv");
+            List<String> inventoryHeadLine = getAllKeysFromProduct(inventoriesMap.get(0));
+
+            writeMapToCsv(headLine, productsMap, ProductController.PRODUCT_CSV_PATH);
+            writeMapToCsv(inventoryHeadLine, inventoriesMap, ProductController.INVENTORY_CSV_PATH);
 
         }
 
+    }
+
+    private List<String> getAllKeysFromProduct(LinkedHashMap<String, String> product) {
+        List<String> keys = new ArrayList<>();
+        for (Map.Entry<String, String> entry : product.entrySet()) {
+            keys.add(entry.getKey());
+        }
+        return keys;
+    }
+
+    private List<LinkedHashMap<String, String>> removeEmptyFields(List<LinkedHashMap<String, String>> productsMap) {
+
+        HashSet<String> keysToRemove = getKeysToDelete(productsMap);
+        for (LinkedHashMap<String, String> product : productsMap) {
+            // Iterate through keys to be removed
+            for (String key : keysToRemove) {
+                // Remove the key if it exists in the product
+                product.remove(key);
+            }
+        }
+        return productsMap;
+    }
+
+    private HashSet<String> getKeysToDelete(List<LinkedHashMap<String, String>> productsMap) {
+
+        List<String> allProductKeys = getAllKeysFromProduct(productsMap.get(0));
+        HashSet<String> keysToRemove = new HashSet<>();
+
+        for (String key : allProductKeys) {
+            boolean isValueExist = false;
+
+            for (LinkedHashMap<String, String> product : productsMap) {
+                if (product.get(key) != null && !product.get(key).isEmpty()) {
+                    isValueExist = true;
+                }
+            }
+
+            if (!isValueExist) {
+                keysToRemove.add(key);
+            }
+        }
+
+        return keysToRemove;
     }
 
     private void writeMapToCsv(List<String> headLine, List<LinkedHashMap<String, String>> productsMap, String filePath) {
@@ -138,13 +180,13 @@ public class ProductService {
         return headLine;
     }
 
-    private LinkedHashMap<String, String> getProductMap(CSVSchema csvSchema, List<String> headLine) {
+    private LinkedHashMap<String, String> getProductMap(CSVSchema csvSchema) {
         LinkedHashMap<String, String> productMap = new LinkedHashMap<>();
         Field[] fields = csvSchema.getClass().getDeclaredFields();
         for (Field field : fields) {
             field.setAccessible(true);
             JsonProperty annotation = field.getAnnotation(JsonProperty.class);
-            if (headLine.contains(annotation.value())) { //if header contains this field name, field added to productLine
+            if (annotation != null) {
                 Object value = null;
                 try {
                     value = field.get(csvSchema);

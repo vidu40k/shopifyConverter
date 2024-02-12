@@ -2,11 +2,13 @@ package shopify.converter.util;
 
 
 import org.springframework.stereotype.Component;
+import shopify.converter.model.FeaturedImage;
 import shopify.converter.model.Option;
 import shopify.converter.model.Product;
 import shopify.converter.schema.InventorySchema;
 import shopify.converter.schema.ProductSchema;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -118,6 +120,17 @@ public class ProductConverter {
             }
 
             productSchemas.add(productSchema);
+        }
+        for (FeaturedImage featuredImage : product.getImages()){
+            if (featuredImage.getVariantIds().isEmpty()){
+
+                ProductSchema productSchema = ProductSchema.builder()
+                        .imagePosition(featuredImage.getPosition())
+                        .imageSrc(featuredImage.getSrc())
+                        .handle(product.getHandle())
+                        .build();
+                productSchemas.add(productSchema);
+            }
         }
 
         return productSchemas;

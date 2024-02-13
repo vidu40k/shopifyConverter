@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Created-By: IntelliJ IDEA
+Built-By: 37544
+Build-Jdk: Amazon Corretto version 17.0.9
+Implementation-Title: ShopifyConverter
+Implementation-Version: 0.0.1-SNAPSHOT
+Implementation-Vendor-Id: shopify.converter
+Main-Class: ${start-class}
+

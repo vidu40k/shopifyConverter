@@ -8,15 +8,16 @@
 </head>
 <body>
 
-
-<div id="passwordForm">
-    <label for="password">Please enter the password:</label><br>
-    <input type="password" id="password" name="password">
-    <button onclick="verifyPassword()">Submit</button>
+<div class="pass" id="pass" style="display: flex;justify-content: center;align-items: center; width: 100%" >
+    <div id="passwordForm">
+        <label for="password">Please enter the password:</label><br>
+        <input type="password" id="password" name="password">
+        <button onclick="verifyPassword()">Submit</button>
+    </div>
 </div>
 
 
-<div class="container" style="display: none">
+<div class="container" id="container" style="display: none">
 
     <table>
         <tr>
@@ -49,22 +50,22 @@
         const password = document.getElementById("password").value;
 
         try {
-            const response = await fetch('/converter/verifyPassword', {
-                method: 'POST',
+            const response = await fetch(`/converter/verifyPassword`, {
+                method: 'POST', //
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({password: password})
+                body: password
             });
 
             const data = await response.json();
             console.log(data);
             if (data.valid) {
-                // Пароль верный, показать содержимое страницы
-                document.getElementById("passwordForm").style.display = "none";
+
+                document.getElementById("pass").style.display = "none";
                 document.getElementById("container").style.display = "flex";
+
             } else {
-                // Пароль неверный, вывести предупреждение
                 alert("Incorrect password. Please try again.");
             }
         } catch (error) {

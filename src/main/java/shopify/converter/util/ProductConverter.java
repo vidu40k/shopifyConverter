@@ -8,7 +8,6 @@ import shopify.converter.model.Product;
 import shopify.converter.schema.InventorySchema;
 import shopify.converter.schema.ProductSchema;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,7 +37,7 @@ public class ProductConverter {
                             .sku(variant.getSku())
                             .hsCode("")
                             .coo("")
-                            .location("My Custom Location")
+                            .location("Distribution Warehouse")
                             .incoming(null)
                             .unavailable(null)
                             .committed(null)

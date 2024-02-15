@@ -1,33 +1,91 @@
-
-.container {
-    display: flex;
-    flex-direction: column;
+/* Styles for the header */
+.custom-header {
+    background-color: black;
+    height: 80px;
+}
+.custom-header img {
+    height: 42px;
+    width: 250px;
+    margin-top: 19px; /* Aligning the image vertically center */
+}
+/* Styles for the container */
+.custom-container {
+    background-image: url('../images/Birthday_slider_fe130e74-cceb-4f6a-924b-91a5a310d3cd_1944x.webp');
+    background-size: cover;
+    height: 100vh;
+    padding: 50px 0;
+}
+/* Styles for the table block */
+.table-block {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+}
+/* Styles for the blurred effect */
+.blur {
+    filter: blur(5px); /* Blur effect with 5px radius */
+    pointer-events: none; /* Allowing events to pass through the blurred area */
+}
+/* Styles for the modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
     width: 100%;
-    height: 700px;
-    justify-content: center;
-    align-content: center;
-    align-items: center;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+    padding-top: 60px;
 }
-
-table {
-    border-collapse: collapse;
-    width: 600px;
+/* Styles for the modal content */
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    max-width: 500px;
 }
-th, td {
-    border: 1px solid black;
-    padding: 3px;
-    text-align: center;
-    height: 20px;
-    width: fit-content;
+/* Styles for the close button of the modal */
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
 }
-th {
-    background-color: #f2f2f2;
-}
-p{
-    margin-block-end: 0;
-    margin-block-start: 0;
-    width: fit-content;
-}
-a{
+.close:hover,
+.close:focus {
     color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+/* Styles for the password input */
+input[type=password] {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+/* Styles for the submit button */
+#submitBtn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+}
+#submitBtn:hover {
+    background-color: #45a049;
+}
+/* Styles for the error text */
+#errorText {
+    text-align: center;
 }

@@ -1,77 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="/css/main.css">
-
+    <link rel="stylesheet" href="../static/css/main.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="shortcut icon" href="//www.motoheadz.com.au/cdn/shop/files/FAVICON_32x32.png?v=1636249762" type="image/png">
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Suppliers Inventory Management</title>
 </head>
 <body>
 
-<div class="pass" id="pass" style="display: flex;justify-content: center;align-items: center; width: 100%" >
-    <div id="passwordForm">
-        <label for="password">Please enter the password:</label><br>
-        <input type="password" id="password" name="password">
-        <button onclick="verifyPassword()">Submit</button>
+
+<div id="myModal" class="modal">
+    <div class="modal-content">
+        <h2>Enter Password</h2>
+        <input type="password" id="password" placeholder="Enter your password">
+        <button id="submitBtn">Submit</button>
+        <p id="errorText" style="color: red;"></p>
     </div>
 </div>
 
 
-<div class="container" id="container" style="display: none">
+<div id="mainContent">
+    <header class="custom-header container-fluid">
+        <div class="row justify-content-start align-items-center px-5">
+            <div class="col-auto">
+                <img src="../static/images/2motoheadz_logo_gotham_black_250x.avif" alt="Your Image">
+            </div>
+        </div>
+    </header>
 
-    <table>
-        <tr>
-            <th><p>Revit</p></th>
-            <th><p> Download <a href="/converter/downloadProduct">product.csv</a></p></th>
-            <th><p> Download <a href="/converter/downloadInventory">inventory.csv</a></p></th>
-        </tr>
-        <tr hidden="hidden">
-            <td>LinkInt</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr hidden="hidden">
-            <td>Whitesmoto</td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr hidden="hidden">
-            <td>Motonational</td>
-            <td></td>
-            <td></td>
-        </tr>
-    </table>
-
+    <div class="custom-container">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="table-block">
+                        <h2 class="text-center mb-4">Suppliers Inventory Management</h2>
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Supplier</th>
+                                <th>Product file</th>
+                                <th>Inventory </th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>Motonational</td>
+                                <td>Download <a >product.csv</a></td>
+                                <td>Download <a >inventory.csv</a></td>
+                            </tr>
+                            <tr>
+                                <td>LinkInt</td>
+                                <td>Download <a >product.csv</a></td>
+                                <td>Download <a >inventory.csv</a></td>
+                            </tr>
+                            <tr>
+                                <td>WhitesMoto</td>
+                                <td>Download <a >product.csv</a></td>
+                                <td>Download <a >inventory.csv</a></td>
+                            </tr>
+                            <tr>
+                                <td>Revit</td>
+                                <td>Download <a href="/converter/downloadProduct">product.csv</a></td>
+                                <td>Download <a href="/converter/downloadInventory">inventory.csv</a></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-
-<script>
-    async function verifyPassword() {
-        const password = document.getElementById("password").value;
-
-        try {
-            const response = await fetch(`/converter/verifyPassword`, {
-                method: 'POST', //
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: password
-            });
-
-            const data = await response.json();
-            console.log(data);
-            if (data.valid) {
-
-                document.getElementById("pass").style.display = "none";
-                document.getElementById("container").style.display = "flex";
-
-            } else {
-                alert("Incorrect password. Please try again.");
-            }
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }
-</script>
+<script src="../static/js/script.js"></script>
 </body>
 </html>

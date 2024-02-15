@@ -16,10 +16,10 @@ public class Variants {
     private String option3;
     private String sku;
     private Integer grams;
-    private String inventoryTracker;//todo
-    private Integer inventoryQty;//todo
-    private String inventoryPolicy;//todo
-    private String fulfillmentService;//todo
+    private String inventoryTracker;
+    private Integer inventoryQty;
+    private String inventoryPolicy;
+    private String fulfillmentService;
     private Double price;
     private Double compareAtPrice;
     private Boolean taxable;

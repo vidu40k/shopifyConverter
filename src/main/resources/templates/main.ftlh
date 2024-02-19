@@ -62,7 +62,7 @@
                             </tr>
                             <tr>
                                 <td>Revit</td>
-                                <td>Download <a href="/converter/downloadProduct">product.csv</a></td>
+                                <td>Download <a href="/converter/downloadProduct">products.csv</a></td>
                                 <td>Download <a href="/converter/downloadInventory">inventory.csv</a></td>
                             </tr>
                             </tbody>

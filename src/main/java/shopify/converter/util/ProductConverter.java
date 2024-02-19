@@ -94,7 +94,7 @@ public class ProductConverter {
                 productSchema.setVendor(product.getVendor());
                 productSchema.setProductCategory("");
                 productSchema.setType(product.getProductType());
-                productSchema.setTags("\"" + String.join(",", product.getTags()) + "\"");
+//                productSchema.setTags("\"" + String.join(",", product.getTags()) + "\"");
                 productSchema.setPublished(true);
                 productSchema.setOption1Name(optionsName.isEmpty() ? "Title" : optionsName.get(0)); //For products that have no options, this should be set to "Title".
                 productSchema.setOption2Name(optionsName.size() > 1 ? optionsName.get(1) : "");
@@ -115,7 +115,7 @@ public class ProductConverter {
                 productSchema.setGoogleShoppingCustomLabel4("");
                 productSchema.setIncludedAustralia(true);
                 productSchema.setIncludedInternational(true);
-                productSchema.setStatus("active");
+                productSchema.setStatus("draft");
             }
 
             productSchemas.add(productSchema);

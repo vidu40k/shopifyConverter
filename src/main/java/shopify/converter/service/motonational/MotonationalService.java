@@ -19,12 +19,9 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.springframework.stereotype.Service;
-import shopify.converter.controller.ProductController;
 import shopify.converter.model.Motonational.MotonationalProduct;
-import shopify.converter.schema.InventorySchema;
-import shopify.converter.schema.ProductSchema;
 import shopify.converter.service.ProductService;
-import shopify.converter.util.MotonationalCoverter;
+import shopify.converter.converter.motonational.MotivationalConverter;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -32,7 +29,6 @@ import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 @Service
@@ -49,41 +45,18 @@ public class MotonationalService extends ProductService {
     private static final String PARENT_FOLDER_ID = "1ObJH7Zq07dqLzk26x7fYpLJ-BL55DOMX";
     private static final String CSV_FOLDER_NAME = "CSV";
 
-    private final MotonationalCoverter motonationalCoverter;
+    private final MotivationalConverter motivationalConverter;
 
     public void parseToProductsCsv() {
 
         try {
+
             downloadExternalCsv();
             List<MotonationalProduct> motonationalProducts = getMotonationalProductFromFile(MOTONATIONAL_PRODUCTS);
 
-            List<LinkedHashMap<String, String>> productsMap = new ArrayList<>();
-            List<LinkedHashMap<String, String>> inventoriesMap = new ArrayList<>();
-
-            for (MotonationalProduct product : motonationalProducts) {
-
-                List<ProductSchema> products = motonationalCoverter.convertToProductSchema(product);
-                for (ProductSchema productSchema : products) {
-                    productsMap.add(getProductMap(productSchema));
-                }
-
-                List<InventorySchema> inventorySchemas = motonationalCoverter.convertToInventorySchema(product);
-                for (InventorySchema inventorySchema : inventorySchemas) {
-                    inventoriesMap.add(getProductMap(inventorySchema));
-                }
-
-            }
-            productsMap = removeEmptyFields(productsMap);
-
-            List<String> headLine = getAllKeysFromProduct(productsMap.get(0));
-            List<String> inventoryHeadLine = getAllKeysFromProduct(inventoriesMap.get(0));
-
-            writeMapToCsv(headLine, productsMap, ProductController.PRODUCT_CSV_PATH);
-            writeMapToCsv(inventoryHeadLine, inventoriesMap, ProductController.INVENTORY_CSV_PATH);
+            saveCsvFile(new ArrayList<>(motonationalProducts), motivationalConverter);
 
         } catch (GeneralSecurityException | IOException e) {
-            throw new RuntimeException(e);
-        } catch (Exception e) {
             throw new RuntimeException(e);
         }
 

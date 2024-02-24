@@ -4,11 +4,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.stereotype.Service;
 import shopify.converter.controller.ProductController;
 import shopify.converter.model.VendorProduct;
-import shopify.converter.model.revit.RevitProduct;
 import shopify.converter.schema.CSVSchema;
 import shopify.converter.schema.InventorySchema;
 import shopify.converter.schema.ProductSchema;
-import shopify.converter.util.ProductConverter;
+import shopify.converter.converter.ProductConverter;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -18,7 +17,6 @@ import java.util.*;
 
 @Service
 public class ProductService {
-
 
     public void saveCsvFile(List<VendorProduct> vendorProducts, ProductConverter productConverter) {
 

@@ -39,7 +39,7 @@ public class ProductController {
     @GetMapping("/downloadProduct")
     public ResponseEntity<Resource> downloadProductFile() {
 
-        revitService.getFileContent(REVIT_REQUEST);
+        revitService.parseToProductsCsv(REVIT_REQUEST);
 
         Path path = Paths.get(PRODUCT_CSV_PATH);
         Resource resource = null;
@@ -62,7 +62,7 @@ public class ProductController {
     @GetMapping("/downloadInventory")
     public ResponseEntity<Resource> downloadInventoryFile() {
 
-        revitService.getFileContent(REVIT_REQUEST);
+        revitService.parseToProductsCsv(REVIT_REQUEST);
 
         Path path = Paths.get(INVENTORY_CSV_PATH);
         Resource resource = null;

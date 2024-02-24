@@ -1,7 +1,9 @@
-package shopify.converter.util;
+package shopify.converter.converter.revit;
 
 
 import org.springframework.stereotype.Component;
+import shopify.converter.converter.ProductConverter;
+import shopify.converter.model.VendorProduct;
 import shopify.converter.model.revit.FeaturedImage;
 import shopify.converter.model.revit.Option;
 import shopify.converter.model.revit.RevitProduct;
@@ -13,10 +15,12 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Component
-public class RevitConverter {
+public class RevitConverter extends ProductConverter {
 
-    public List<InventorySchema> convertToInventorySchema(RevitProduct revitProduct) {
+    @Override
+    public List<InventorySchema> convertToInventorySchema(VendorProduct vendorProduct) {
 
+        RevitProduct revitProduct = (RevitProduct) vendorProduct;
         List<InventorySchema> inventorySchemas = new LinkedList<>();
         List<String> optionsName = revitProduct.getOptions().stream()
                 .map(Option::getName)
@@ -49,8 +53,10 @@ public class RevitConverter {
         return inventorySchemas;
     }
 
+    @Override
+    public List<ProductSchema> convertToProductSchema(VendorProduct vendorProduct) {
 
-    public List<ProductSchema> convertToProductSchema(RevitProduct revitProduct) {
+        RevitProduct revitProduct = (RevitProduct) vendorProduct;
 
         List<ProductSchema> productSchemas = new ArrayList<>();
         List<String> optionsName = revitProduct.getOptions().stream()
@@ -120,8 +126,8 @@ public class RevitConverter {
 
             productSchemas.add(productSchema);
         }
-        for (FeaturedImage featuredImage : revitProduct.getImages()){
-            if (featuredImage.getVariantIds().isEmpty()){
+        for (FeaturedImage featuredImage : revitProduct.getImages()) {
+            if (featuredImage.getVariantIds().isEmpty()) {
 
                 ProductSchema productSchema = ProductSchema.builder()
                         .imagePosition(featuredImage.getPosition())
@@ -163,5 +169,6 @@ public class RevitConverter {
 
         return contentWithoutTags.trim();
     }
+
 
 }

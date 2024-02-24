@@ -1,4 +1,4 @@
-package shopify.converter.model;
+package shopify.converter.model.revit;
 
 import lombok.Data;
 

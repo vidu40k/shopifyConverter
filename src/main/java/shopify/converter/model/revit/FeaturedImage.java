@@ -1,4 +1,4 @@
-package shopify.converter.model;
+package shopify.converter.model.revit;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

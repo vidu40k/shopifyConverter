@@ -1,14 +1,14 @@
-package shopify.converter.model;
+package shopify.converter.model.revit;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.Data;
+import shopify.converter.model.VendorProduct;
 
 import java.util.List;
 
 @Data
-public class Product {
+public class RevitProduct extends VendorProduct {
 
     @JsonProperty("title")
     private String title;

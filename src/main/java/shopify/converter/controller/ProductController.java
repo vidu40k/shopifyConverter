@@ -8,7 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import shopify.converter.service.ProductService;
+import shopify.converter.service.revit.RevitService;
 
 import java.net.MalformedURLException;
 import java.nio.file.Path;
@@ -26,7 +26,7 @@ public class ProductController {
     public static final String INVENTORY_CSV_PATH = "inventory.csv";
     private static final String PASSWORD = "rouzer";
 
-    private final ProductService productService;
+    private final RevitService revitService;
 
 
     @GetMapping("/index")
@@ -39,7 +39,7 @@ public class ProductController {
     @GetMapping("/downloadProduct")
     public ResponseEntity<Resource> downloadProductFile() {
 
-        productService.getFileContent(REVIT_REQUEST);
+        revitService.getFileContent(REVIT_REQUEST);
 
         Path path = Paths.get(PRODUCT_CSV_PATH);
         Resource resource = null;
@@ -62,7 +62,7 @@ public class ProductController {
     @GetMapping("/downloadInventory")
     public ResponseEntity<Resource> downloadInventoryFile() {
 
-        productService.getFileContent(REVIT_REQUEST);
+        revitService.getFileContent(REVIT_REQUEST);
 
         Path path = Paths.get(INVENTORY_CSV_PATH);
         Resource resource = null;

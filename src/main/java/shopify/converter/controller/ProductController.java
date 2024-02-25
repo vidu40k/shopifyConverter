@@ -8,6 +8,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import shopify.converter.model.Motonational.MotonationalProduct;
+import shopify.converter.service.ProductService;
+import shopify.converter.service.motonational.MotonationalService;
 import shopify.converter.service.revit.RevitService;
 
 import java.net.MalformedURLException;
@@ -21,67 +24,12 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ProductController {
 
-    private static final String REVIT_REQUEST = "https://www.revitaustralia.com.au/products.json?limit=250&page=1";
-    public static final String PRODUCT_CSV_PATH = "products.csv";
-    public static final String INVENTORY_CSV_PATH = "inventory.csv";
     private static final String PASSWORD = "rouzer";
-
-    private final RevitService revitService;
-
 
     @GetMapping("/index")
     public String getPage() {
-
         return "main";
     }
-
-
-    @GetMapping("/downloadProduct")
-    public ResponseEntity<Resource> downloadProductFile() {
-
-        revitService.parseToProductsCsv(REVIT_REQUEST);
-
-        Path path = Paths.get(PRODUCT_CSV_PATH);
-        Resource resource = null;
-        try {
-            resource = new UrlResource(path.toUri());
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-
-        if (resource == null || !resource.exists() || !resource.isReadable()) {
-            throw new RuntimeException("Can't find the file or read it: product.csv");
-        }
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=product.csv")
-                .contentType(MediaType.parseMediaType("application/csv"))
-                .body(resource);
-    }
-
-    @GetMapping("/downloadInventory")
-    public ResponseEntity<Resource> downloadInventoryFile() {
-
-        revitService.parseToProductsCsv(REVIT_REQUEST);
-
-        Path path = Paths.get(INVENTORY_CSV_PATH);
-        Resource resource = null;
-        try {
-            resource = new UrlResource(path.toUri());
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-
-        if (resource == null || !resource.exists() || !resource.isReadable()) {
-            throw new RuntimeException("Can't find the file or read it: inventory.csv");
-        }
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=inventory.csv")
-                .contentType(MediaType.parseMediaType("application/csv"))
-                .body(resource);
-    }
-
 
     @PostMapping("/verifyPassword")
     @ResponseBody

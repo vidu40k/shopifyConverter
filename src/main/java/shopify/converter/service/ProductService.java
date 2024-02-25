@@ -1,39 +1,71 @@
 package shopify.converter.service;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import shopify.converter.controller.ProductController;
+import shopify.converter.converter.ProductConverter;
 import shopify.converter.model.VendorProduct;
 import shopify.converter.schema.CSVSchema;
 import shopify.converter.schema.InventorySchema;
 import shopify.converter.schema.ProductSchema;
-import shopify.converter.converter.ProductConverter;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 @Service
 public class ProductService {
 
-    public void saveCsvFile(List<VendorProduct> vendorProducts, ProductConverter productConverter) {
+    public ResponseEntity<Resource> getResourceResponseEntity(String csvFilePath) {
+
+        var filename = extractFileName(csvFilePath);
+        Path path = Paths.get(csvFilePath);
+        Resource resource = null;
+        try {
+            resource = new UrlResource(path.toUri());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        if (resource == null || !resource.exists() || !resource.isReadable()) {
+            throw new RuntimeException("Can't find the file or read it: " + filename );
+        }
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                .contentType(MediaType.parseMediaType("application/csv"))
+                .body(resource);
+    }
+
+
+    private String extractFileName(String filePath) {
+
+        String[] parts = filePath.split("/");
+        return parts[parts.length - 1];
+    }
+
+    public void saveCsvFile(List<VendorProduct> vendorProducts, ProductConverter productConverter, String productCsvPath, String inventoryCsvPath) {
 
         List<LinkedHashMap<String, String>> productsMap = new ArrayList<>();
         List<LinkedHashMap<String, String>> inventoriesMap = new ArrayList<>();
 
-        for (VendorProduct revitProduct : vendorProducts) {
+        List<ProductSchema> products = productConverter.convertToProductSchema(vendorProducts);
+        for (ProductSchema productSchema : products) {
+            productsMap.add(getProductMap(productSchema));
+        }
 
-            List<ProductSchema> products = productConverter.convertToProductSchema(revitProduct);
-            for (ProductSchema productSchema : products) {
-                productsMap.add(getProductMap(productSchema));
-            }
-
-            List<InventorySchema> inventorySchemas = productConverter.convertToInventorySchema(revitProduct);
-            for (InventorySchema inventorySchema : inventorySchemas) {
-                inventoriesMap.add(getProductMap(inventorySchema));
-            }
+        List<InventorySchema> inventorySchemas = productConverter.convertToInventorySchema(vendorProducts);
+        for (InventorySchema inventorySchema : inventorySchemas) {
+            inventoriesMap.add(getProductMap(inventorySchema));
         }
 
         productsMap = removeEmptyFields(productsMap);
@@ -41,8 +73,8 @@ public class ProductService {
 
         List<String> inventoryHeadLine = getAllKeysFromProduct(inventoriesMap.get(0));
 
-        writeMapToCsv(headLine, productsMap, ProductController.PRODUCT_CSV_PATH);
-        writeMapToCsv(inventoryHeadLine, inventoriesMap, ProductController.INVENTORY_CSV_PATH);
+        writeMapToCsv(headLine, productsMap, productCsvPath);
+        writeMapToCsv(inventoryHeadLine, inventoriesMap, inventoryCsvPath);
 
     }
 

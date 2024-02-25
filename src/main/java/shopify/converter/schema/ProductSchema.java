@@ -47,7 +47,7 @@ public class ProductSchema implements CSVSchema {
     @JsonProperty("Vendor")
     private String vendor;
 
-    @JsonProperty("RevitProduct Category")
+    @JsonProperty("Product Category")
     private String productCategory;
 
     @JsonProperty("Type")

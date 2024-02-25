@@ -8,8 +8,8 @@ import java.util.List;
 
 public  abstract class ProductConverter {
 
-    public abstract List<ProductSchema> convertToProductSchema(VendorProduct product);
+    public abstract List<ProductSchema> convertToProductSchema(List<VendorProduct> product);
 
-    public abstract List<InventorySchema> convertToInventorySchema(VendorProduct vendorProduct);
+    public abstract List<InventorySchema> convertToInventorySchema(List<VendorProduct> vendorProduct);
 
 }

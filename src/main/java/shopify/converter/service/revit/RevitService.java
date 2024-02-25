@@ -9,6 +9,8 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.HttpEntity;
 import org.springframework.stereotype.Service;
+import shopify.converter.controller.ProductController;
+import shopify.converter.controller.revit.RevitController;
 import shopify.converter.model.VendorProduct;
 import shopify.converter.response.revit.ProductsResponse;
 import shopify.converter.service.ProductService;
@@ -32,11 +34,10 @@ public class RevitService extends ProductService {
 
             if (!products.isEmpty()) {
                 List<VendorProduct> vendorProducts = new ArrayList<>(products);
-                saveCsvFile(vendorProducts, revitConverter);
+                saveCsvFile(vendorProducts, revitConverter, RevitController.PRODUCT_CSV_PATH,RevitController.INVENTORY_CSV_PATH);
             }else {
                 throw new RuntimeException("cannot get products from api");
             }
-
         }
     }
 

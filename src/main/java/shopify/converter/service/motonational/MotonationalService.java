@@ -18,12 +18,14 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.checkerframework.checker.units.qual.C;
 import org.springframework.stereotype.Service;
+import shopify.converter.converter.motonational.MotivationalConverter;
 import shopify.converter.model.Motonational.MotonationalProduct;
 import shopify.converter.service.ProductService;
-import shopify.converter.converter.motonational.MotivationalConverter;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
@@ -41,26 +43,27 @@ public class MotonationalService extends ProductService {
     private static final List<String> SCOPES =
             Collections.singletonList(DriveScopes.DRIVE);
     private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
-    private static final String MOTONATIONAL_PRODUCTS = "Motonational.csv";
     private static final String PARENT_FOLDER_ID = "1ObJH7Zq07dqLzk26x7fYpLJ-BL55DOMX";
     private static final String CSV_FOLDER_NAME = "CSV";
+    private static final String MOTONATIONAL_EXTERNAL_PRODUCTS = "Motonational.csv";
+    private static final String MOTONATIONAL_EXTERNAL_PRODUCTS_NO_BOM = "MotonationalNoBom.csv";
+
+    private static final String MOTONATIONAL_PRODUCTS_CSV = "src/main/resources/products/motonational/products.csv";
+    private static final String MOTONATIONAL_INVENTORY_CSV = "src/main/resources/products/motonational/inventory.csv";
 
     private final MotivationalConverter motivationalConverter;
 
     public void parseToProductsCsv() {
 
         try {
-
             downloadExternalCsv();
-            List<MotonationalProduct> motonationalProducts = getMotonationalProductFromFile(MOTONATIONAL_PRODUCTS);
 
-            saveCsvFile(new ArrayList<>(motonationalProducts), motivationalConverter);
+            List<MotonationalProduct> motonationalProducts = getMotonationalProductFromFile(MOTONATIONAL_EXTERNAL_PRODUCTS_NO_BOM);
+            saveCsvFile(new ArrayList<>(motonationalProducts), motivationalConverter, MOTONATIONAL_PRODUCTS_CSV, MOTONATIONAL_INVENTORY_CSV);
 
-        } catch (GeneralSecurityException | IOException e) {
+        } catch (IOException | GeneralSecurityException e) {
             throw new RuntimeException(e);
         }
-
-
     }
 
     public void downloadExternalCsv() throws GeneralSecurityException, IOException {
@@ -74,10 +77,38 @@ public class MotonationalService extends ProductService {
         for (com.google.api.services.drive.model.File file : files) {
 
             InputStream csvInputStream = downloadCsvFile(service, file.getId());
-            var f = readCSVFromInputStream(csvInputStream);
-            writeCSVToFile(processCSVRecords(f), MOTONATIONAL_PRODUCTS);
+            var csvRecords = readCSVFromInputStream(csvInputStream);
+            writeCSVToFile(processCSVRecords(csvRecords), MOTONATIONAL_EXTERNAL_PRODUCTS);
+            removeBOM(MOTONATIONAL_EXTERNAL_PRODUCTS,MOTONATIONAL_EXTERNAL_PRODUCTS_NO_BOM);
         }
+    }
 
+    private static void removeBOM(String inputFilePath, String outputFilePath) {
+        try (InputStream inputStream = new FileInputStream(inputFilePath);
+             OutputStream outputStream = new FileOutputStream(outputFilePath);
+             BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+             BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
+
+            // Проверяем, есть ли BOM
+            byte[] bomBytes = new byte[3];
+            bufferedInputStream.mark(3);
+            bufferedInputStream.read(bomBytes, 0, 3);
+            bufferedInputStream.reset();
+
+            // Если BOM есть, пропускаем его
+            if (bomBytes[0] == (byte) 0xEF && bomBytes[1] == (byte) 0xBB && bomBytes[2] == (byte) 0xBF) {
+                bufferedInputStream.skip(3);
+            }
+
+            // Копируем оставшееся содержимое файла
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = bufferedInputStream.read(buffer)) != -1) {
+                bufferedOutputStream.write(buffer, 0, bytesRead);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT)
@@ -118,8 +149,27 @@ public class MotonationalService extends ProductService {
         }
     }
 
+//    private void writeCSVToFile(List<List<String>> records, String fileName) {
+//        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+//            for (List<String> record : records) {
+//                StringBuilder line = new StringBuilder();
+//                for (String value : record) {
+//                    if (value != null) {
+//                        line.append(value.replaceAll(",", ""));
+//                    }
+//                    line.append(",");
+//                }
+//                line.deleteCharAt(line.length() - 1);
+//                writer.write(line.toString());
+//                writer.newLine();
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+
     private void writeCSVToFile(List<List<String>> records, String fileName) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), StandardCharsets.UTF_8))) {
             for (List<String> record : records) {
                 StringBuilder line = new StringBuilder();
                 for (String value : record) {
@@ -128,16 +178,15 @@ public class MotonationalService extends ProductService {
                     }
                     line.append(",");
                 }
-
                 line.deleteCharAt(line.length() - 1);
                 writer.write(line.toString());
                 writer.newLine();
-
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 
     private List<List<String>> processCSVRecords(List<CSVRecord> records) {
         List<List<String>> updatedRecords = new ArrayList<>();

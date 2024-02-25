@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import shopify.converter.controller.ProductController;
 import shopify.converter.service.revit.RevitService;
 
+import java.io.File;
+
 @Controller
 @RequestMapping("converter/revit")
 @RequiredArgsConstructor
@@ -23,14 +25,18 @@ public class RevitController extends ProductController {
     @GetMapping("/downloadProduct")
     public ResponseEntity<Resource> downloadProductFile() {
 
-        revitService.parseToProductsCsv(REVIT_REQUEST);
+        File file = new File(PRODUCT_CSV_PATH);
+        if (!file.exists())
+            revitService.parseToProductsCsv(REVIT_REQUEST);
         return revitService.getResourceResponseEntity(PRODUCT_CSV_PATH);
     }
 
     @GetMapping("/downloadInventory")
     public ResponseEntity<Resource> downloadInventoryFile() {
 
-        revitService.parseToProductsCsv(REVIT_REQUEST);
+        File file = new File(INVENTORY_CSV_PATH);
+        if (!file.exists())
+            revitService.parseToProductsCsv(REVIT_REQUEST);
         return revitService.getResourceResponseEntity(INVENTORY_CSV_PATH);
     }
 

@@ -1,5 +1,9 @@
 package shopify.converter.service.motonational;
 
+import com.fasterxml.jackson.databind.MappingIterator;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
@@ -13,25 +17,20 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.FileList;
-import com.opencsv.bean.CsvToBeanBuilder;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.checkerframework.checker.units.qual.C;
 import org.springframework.stereotype.Service;
 import shopify.converter.converter.motonational.MotivationalConverter;
 import shopify.converter.model.Motonational.MotonationalProduct;
 import shopify.converter.service.ProductService;
+import shopify.converter.util.FileCleanupScheduler;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -43,7 +42,6 @@ public class MotonationalService extends ProductService {
     private static final List<String> SCOPES =
             Collections.singletonList(DriveScopes.DRIVE);
     private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
-    private static final String PARENT_FOLDER_ID = "1ObJH7Zq07dqLzk26x7fYpLJ-BL55DOMX";
     private static final String CSV_FOLDER_NAME = "CSV";
     private static final String MOTONATIONAL_EXTERNAL_PRODUCTS = "Motonational.csv";
     private static final String MOTONATIONAL_EXTERNAL_PRODUCTS_NO_BOM = "MotonationalNoBom.csv";
@@ -52,14 +50,20 @@ public class MotonationalService extends ProductService {
     private static final String MOTONATIONAL_INVENTORY_CSV = "src/main/resources/products/motonational/inventory.csv";
 
     private final MotivationalConverter motivationalConverter;
+    private final FileCleanupScheduler fileCleanupScheduler;
 
     public void parseToProductsCsv() {
 
         try {
             downloadExternalCsv();
 
-            List<MotonationalProduct> motonationalProducts = getMotonationalProductFromFile(MOTONATIONAL_EXTERNAL_PRODUCTS_NO_BOM);
+            var motonationalProducts = readCsvFile(MOTONATIONAL_EXTERNAL_PRODUCTS_NO_BOM);
             saveCsvFile(new ArrayList<>(motonationalProducts), motivationalConverter, MOTONATIONAL_PRODUCTS_CSV, MOTONATIONAL_INVENTORY_CSV);
+
+            fileCleanupScheduler.addFilePath(MOTONATIONAL_EXTERNAL_PRODUCTS);
+            fileCleanupScheduler.addFilePath(MOTONATIONAL_EXTERNAL_PRODUCTS_NO_BOM);
+            fileCleanupScheduler.addFilePath(MOTONATIONAL_PRODUCTS_CSV);
+            fileCleanupScheduler.addFilePath(MOTONATIONAL_INVENTORY_CSV);
 
         } catch (IOException | GeneralSecurityException e) {
             throw new RuntimeException(e);
@@ -73,14 +77,35 @@ public class MotonationalService extends ProductService {
                 .setApplicationName(APPLICATION_NAME)
                 .build();
 
-        List<com.google.api.services.drive.model.File> files = getCSVFilesInFolder(service);
-        for (com.google.api.services.drive.model.File file : files) {
+        Map<String, String> vendors = new HashMap<>(Map.of(
+                "Airoh", "https://drive.google.com/drive/folders/1ObJH7Zq07dqLzk26x7fYpLJ-BL55DOMX",
+                "Five Gloves", "https://drive.google.com/drive/folders/14OKsESt6JcsSQL_d-lM8-tujxquWTTTK",
+                "SHAD", "https://drive.google.com/drive/folders/1jVLuxUN_ABca6NI-GrrUQFzjNJcWitOx",
+                "Falco", "https://drive.google.com/drive/folders/1vElcqlwhGnQwdj4XxH8d67txND2iGrn5"));
 
+        vendors.put("TWOBROTHERS", "https://drive.google.com/drive/folders/15y50FOHqvdQWuPQnHE7T0x7so6yFUTe4");
+        vendors.put("MotoDry", "https://drive.google.com/drive/folders/1w-AN5uiPoSgOMNsQYtBWhVz0mZf_PjD2");
+        vendors.put("RXT", "https://drive.google.com/drive/folders/1uR3mN2uaPGBHEVh3Ag2M_qlP3u7nMlf9");
+        vendors.put("Kabuto", "https://drive.google.com/drive/folders/1hah7SdaK-1omPu3aAPdQQmjTkenkReI9");
+        vendors.put("Zero Goggles", "https://drive.google.com/drive/folders/1Ry_gbA7UCmBBaaQN7eJmvtZZn5g6EwBZ");
+        vendors.put("Lok-Up", "https://drive.google.com/drive/folders/1_qvwiXF2iKTEzAyMGcyQDPOhY0ew4jeN");
+        vendors.put("Cube", "https://drive.google.com/drive/folders/1RHthLWRJPNFo8u3uqKzzjlUDNqcM_5Je");
+        vendors.put("MX Net", "https://drive.google.com/drive/folders/1VIVyutDYJIlB1i-wK9RP5OnHJ-pXHZJG");
+        vendors.put("Crocbite", "https://drive.google.com/drive/folders/1AKGON2kX14VWu1S8TABfTv_arem_yYG_");
+        vendors.put("BOBSTER", "https://drive.google.com/drive/folders/1Iqy38l7sNlmSIi15KR5xGTSKKNui7gUd");
+        vendors.put("Moto+", "https://drive.google.com/drive/folders/10JLLuV3Atf0gmorZlmUfycpveftFkES7");
+        vendors.put("ZANheadgear", "https://drive.google.com/drive/folders/1Wu65ADEwRvzEJolPbYuDSyZOx2B0zdhA");
+
+        List<CSVRecord> csvRecords = new ArrayList<>();
+
+        List<com.google.api.services.drive.model.File> files = getCSVFilesInFolder(service, new ArrayList<>(vendors.values()));
+        for (com.google.api.services.drive.model.File file : files) {
             InputStream csvInputStream = downloadCsvFile(service, file.getId());
-            var csvRecords = readCSVFromInputStream(csvInputStream);
-            writeCSVToFile(processCSVRecords(csvRecords), MOTONATIONAL_EXTERNAL_PRODUCTS);
-            removeBOM(MOTONATIONAL_EXTERNAL_PRODUCTS,MOTONATIONAL_EXTERNAL_PRODUCTS_NO_BOM);
+            csvRecords.addAll(readCSVFromInputStream(csvInputStream));
         }
+
+        writeCSVToFile(processCSVRecords(csvRecords), MOTONATIONAL_EXTERNAL_PRODUCTS);
+        removeBOM(MOTONATIONAL_EXTERNAL_PRODUCTS, MOTONATIONAL_EXTERNAL_PRODUCTS_NO_BOM);
     }
 
     private static void removeBOM(String inputFilePath, String outputFilePath) {
@@ -139,34 +164,20 @@ public class MotonationalService extends ProductService {
         return csvParser.getRecords();
     }
 
+    private static List<MotonationalProduct> readCsvFile(String fileName) throws IOException {
+        CsvMapper csvMapper = new CsvMapper();
+        CsvSchema schema = CsvSchema.emptySchema().withHeader();
+        ObjectReader reader = csvMapper.readerFor(MotonationalProduct.class).with(schema);
 
-    private List<MotonationalProduct> getMotonationalProductFromFile(String fileName) throws IOException {
-        try (Reader reader = Files.newBufferedReader(Paths.get(fileName))) {
-            return new CsvToBeanBuilder<MotonationalProduct>(reader)
-                    .withType(MotonationalProduct.class)
-                    .build()
-                    .parse();
+        List<MotonationalProduct> products = new ArrayList<>();
+        try (MappingIterator<MotonationalProduct> iterator = reader.readValues(new File(fileName))) {
+            while (iterator.hasNext()) {
+                MotonationalProduct product = iterator.next();
+                products.add(product);
+            }
         }
+        return products;
     }
-
-//    private void writeCSVToFile(List<List<String>> records, String fileName) {
-//        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
-//            for (List<String> record : records) {
-//                StringBuilder line = new StringBuilder();
-//                for (String value : record) {
-//                    if (value != null) {
-//                        line.append(value.replaceAll(",", ""));
-//                    }
-//                    line.append(",");
-//                }
-//                line.deleteCharAt(line.length() - 1);
-//                writer.write(line.toString());
-//                writer.newLine();
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
 
     private void writeCSVToFile(List<List<String>> records, String fileName) {
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), StandardCharsets.UTF_8))) {
@@ -187,7 +198,6 @@ public class MotonationalService extends ProductService {
         }
     }
 
-
     private List<List<String>> processCSVRecords(List<CSVRecord> records) {
         List<List<String>> updatedRecords = new ArrayList<>();
 
@@ -198,7 +208,10 @@ public class MotonationalService extends ProductService {
             for (String value : record) {
                 filledFieldsCount++;
                 if (value != null) {
+                    value = value.replace("\uFEFF", "").trim();
                     value = value.replaceAll("\r", "");
+                    value = value.replaceAll("\"", "\"\"");
+                    value = "\"" + value + "\"";
                 }
                 updatedFields.add(value);
             }
@@ -233,22 +246,35 @@ public class MotonationalService extends ProductService {
         return null;
     }
 
+    private String extractFolderIdFromUrl(String url) {
+        String[] parts = url.split("/");
+        return parts[parts.length - 1];
+    }
 
-    private List<com.google.api.services.drive.model.File> getCSVFilesInFolder(Drive service) throws IOException {
+    private List<com.google.api.services.drive.model.File> getCSVFilesInFolder(Drive service, List<String> parentFolderURLs) throws IOException {
         List<com.google.api.services.drive.model.File> csvFiles = new ArrayList<>();
 
-        // Получение списка файлов в папке
-        FileList result = service.files().list()
-                .setQ("'" + findFolderId(service, PARENT_FOLDER_ID, CSV_FOLDER_NAME) + "' in parents and mimeType = 'text/csv'")
-                .setFields("files(id, name)")
-                .execute();
-        List<com.google.api.services.drive.model.File> files = result.getFiles();
+        for (String parentFolderUrl : parentFolderURLs) {
 
-        // Фильтрация файлов, оставляем только CSV файлы
-        if (files != null && !files.isEmpty()) {
-            csvFiles.addAll(files);
+            // Получение списка файлов в папке google
+            FileList result = service.files().list()
+                    .setQ("'" + findFolderId(service, extractFolderIdFromUrl(parentFolderUrl), CSV_FOLDER_NAME) + "' in parents and mimeType = 'text/csv'")
+                    .setFields("files(id, name)")
+                    .execute();
+            List<com.google.api.services.drive.model.File> files = result.getFiles();
+
+            // Фильтрация файлов, оставляем только CSV файлы
+            if (files != null && !files.isEmpty()) {
+                if (files.size() > 1) {
+                    for (com.google.api.services.drive.model.File file : files) {
+                        if (file.getName().contains("product-export")) {
+                            csvFiles.add(file);
+                        }
+                    }
+                } else
+                    csvFiles.addAll(files);
+            }
         }
-
         return csvFiles;
     }
 

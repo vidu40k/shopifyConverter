@@ -8,6 +8,6 @@ import java.util.List;
 public class Option {
 
     private String name;
-    private Integer position;
+    private String position;
     private List<String> values;
 }

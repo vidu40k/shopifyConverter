@@ -84,7 +84,7 @@ public class RevitConverter extends ProductConverter {
                         .variantSku(variant.getSku())
                         .variantGrams(variant.getGrams())
                         .variantInventoryTracker("shopify")
-                        .variantInventoryQty(variant.getAvailable() ? 10 : 0)
+                        .variantInventoryQty(variant.getAvailable() ? "10" : "0")
                         .variantInventoryPolicy("deny")
                         .variantFulfillmentService("manual")
                         .variantPrice(variant.getPrice())
@@ -106,7 +106,7 @@ public class RevitConverter extends ProductConverter {
                     isFirstVariant = false;
 
                     productSchema.setTitle(revitProduct.getTitle());
-                    productSchema.setBodyHtml(convertString(revitProduct.getBodyHtml()));// todo set all tags h6
+                    productSchema.setBodyHtml(replaceHeadersWithH6(convertString(revitProduct.getBodyHtml())) );
                     productSchema.setVendor(revitProduct.getVendor());
                     productSchema.setProductCategory("");
                     productSchema.setType(revitProduct.getProductType());
@@ -154,12 +154,7 @@ public class RevitConverter extends ProductConverter {
         return productSchemas;
     }
 
-    private String convertString(String stringToConvert) {
 
-        stringToConvert = stringToConvert.replace("\"", "\"\"");
-        return "\"" + stringToConvert + "\"";
-
-    }
 
     private String extractContentInSpans(String inputString) {
 

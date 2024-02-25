@@ -15,6 +15,7 @@ import shopify.converter.model.VendorProduct;
 import shopify.converter.response.revit.ProductsResponse;
 import shopify.converter.service.ProductService;
 import shopify.converter.converter.revit.RevitConverter;
+import shopify.converter.util.FileCleanupScheduler;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import java.util.List;
 public class RevitService extends ProductService {
 
     private final RevitConverter revitConverter;
+    private final FileCleanupScheduler fileCleanupScheduler;
 
     public void parseToProductsCsv(String url) throws RuntimeException {
 
@@ -34,8 +36,12 @@ public class RevitService extends ProductService {
 
             if (!products.isEmpty()) {
                 List<VendorProduct> vendorProducts = new ArrayList<>(products);
-                saveCsvFile(vendorProducts, revitConverter, RevitController.PRODUCT_CSV_PATH,RevitController.INVENTORY_CSV_PATH);
-            }else {
+                saveCsvFile(vendorProducts, revitConverter, RevitController.PRODUCT_CSV_PATH, RevitController.INVENTORY_CSV_PATH);
+
+                fileCleanupScheduler.addFilePath(RevitController.PRODUCT_CSV_PATH);
+                fileCleanupScheduler.addFilePath(RevitController.INVENTORY_CSV_PATH);
+
+            } else {
                 throw new RuntimeException("cannot get products from api");
             }
         }

@@ -81,13 +81,13 @@ public class ProductSchema implements CSVSchema {
     private String variantSku;
 
     @JsonProperty("Variant Grams")
-    private Integer variantGrams;
+    private String variantGrams;
 
     @JsonProperty("Variant Inventory Tracker")
     private String variantInventoryTracker;
 
     @JsonProperty("Variant Inventory Qty")
-    private Integer variantInventoryQty;
+    private String variantInventoryQty;
 
     @JsonProperty("Variant Inventory Policy")
     private String variantInventoryPolicy;
@@ -96,10 +96,10 @@ public class ProductSchema implements CSVSchema {
     private String variantFulfillmentService;
 
     @JsonProperty("Variant Price")
-    private Double variantPrice;
+    private String variantPrice;
 
     @JsonProperty("Variant Compare At Price")
-    private Double variantCompareAtPrice;
+    private String variantCompareAtPrice;
 
     @JsonProperty("Variant Requires Shipping")
     private Boolean variantRequiresShipping;
@@ -114,7 +114,7 @@ public class ProductSchema implements CSVSchema {
     private String imageSrc;
 
     @JsonProperty("Image Position")
-    private Integer imagePosition;
+    private String imagePosition;
 
     @JsonProperty("Image Alt Text")
     private String imageAltText;
@@ -171,25 +171,25 @@ public class ProductSchema implements CSVSchema {
     private String variantTaxCode;
 
     @JsonProperty("Cost per item")
-    private Double costPerItem;
+    private String costPerItem;
 
     @JsonProperty("Included / Australia")
     private Boolean includedAustralia;
 
     @JsonProperty("Price / Australia")
-    private Double priceAustralia;
+    private String priceAustralia;
 
     @JsonProperty("Compare At Price / Australia")
-    private Double compareAtPriceAustralia;
+    private String compareAtPriceAustralia;
 
     @JsonProperty("Included / International")
     private Boolean includedInternational;
 
     @JsonProperty("Price / International")
-    private Double priceInternational;
+    private String priceInternational;
 
     @JsonProperty("Compare At Price / International")
-    private Double compareAtPriceInternational;
+    private String compareAtPriceInternational;
 
     @JsonProperty("Status")
     private String status;

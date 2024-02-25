@@ -1,231 +1,267 @@
 package shopify.converter.model.Motonational;
 
-import com.opencsv.bean.CsvBindByName;
-import com.opencsv.bean.CsvBindByPosition;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import shopify.converter.model.VendorProduct;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
 public class MotonationalProduct extends VendorProduct {
 
-    @CsvBindByName(column = "ID")
+    @JsonProperty("ID")
     private String id;
 
-    @CsvBindByName(column = "Type")
+    @JsonProperty("Type")
     private String type;
 
-    @CsvBindByName(column = "SKU")
+    @JsonProperty("SKU")
     private String sku;
 
-    @CsvBindByName(column = "Name")
+    @JsonProperty("Name")
     private String name;
 
-    @CsvBindByName(column = "Published")
+    @JsonProperty("Published")
     private String published;
 
-    @CsvBindByName(column = "Is featured?")
+    @JsonProperty("Is featured?")
     private String isFeatured;
 
-    @CsvBindByName(column = "Visibility in catalogue")
+    @JsonProperty("Visibility in catalogue")
     private String visibilityInCatalogue;
 
-    @CsvBindByName(column = "Short description")
+    @JsonProperty("Short description")
     private String shortDescription;
 
-    @CsvBindByName(column = "Description")
+    @JsonProperty("Description")
     private String description;
 
-    @CsvBindByName(column = "Date sale price starts")
+    @JsonProperty("Date sale price starts")
     private String dateSalePriceStarts;
 
-    @CsvBindByName(column = "Date sale price ends")
+    @JsonProperty("Date sale price ends")
     private String dateSalePriceEnds;
 
-    @CsvBindByName(column = "Tax status")
+    @JsonProperty("Tax status")
     private String taxStatus;
 
-    @CsvBindByName(column = "Tax class")
+    @JsonProperty("Tax class")
     private String taxClass;
 
-    @CsvBindByName(column = "In stock?")
+    @JsonProperty("In stock?")
     private String inStock;
 
-    @CsvBindByName(column = "Stock")
+    @JsonProperty("Stock")
     private String stock;
 
-    @CsvBindByName(column = "Low stock amount")
+    @JsonProperty("Low stock amount")
     private String lowStockAmount;
 
-    @CsvBindByName(column = "Backorders allowed?")
+    @JsonProperty("Backorders allowed?")
     private String backordersAllowed;
 
-    @CsvBindByName(column = "Sold individually?")
+    @JsonProperty("Sold individually?")
     private String soldIndividually;
 
-    @CsvBindByName(column = "Weight (kg)")
+    @JsonProperty("Weight (kg)")
     private String weight;
 
-    @CsvBindByName(column = "Length (cm)")
+    @JsonProperty("Length (cm)")
     private String length;
 
-    @CsvBindByName(column = "Width (cm)")
+    @JsonProperty("Width (cm)")
     private String width;
 
-    @CsvBindByName(column = "Height (cm)")
+    @JsonProperty("Height (cm)")
     private String height;
 
-    @CsvBindByName(column = "Allow customer reviews?")
+    @JsonProperty("Allow customer reviews?")
     private String allowCustomerReviews;
 
-    @CsvBindByName(column = "Purchase note")
+    @JsonProperty("Purchase note")
     private String purchaseNote;
 
-    @CsvBindByName(column = "Sale price")
+    @JsonProperty("Sale price")
     private String salePrice;
 
-    @CsvBindByName(column = "Regular price")
+    @JsonProperty("Regular price")
     private String regularPrice;
 
-    @CsvBindByName(column = "Categories")
+    @JsonProperty("Categories")
     private String categories;
 
-    @CsvBindByName(column = "Tags")
+    @JsonProperty("Tags")
     private String tags;
 
-    @CsvBindByName(column = "Shipping class")
+    @JsonProperty("Shipping class")
     private String shippingClass;
 
-    @CsvBindByName(column = "Images")
+    @JsonProperty("Images")
     private String images;
 
-    @CsvBindByName(column = "Download limit")
+    @JsonProperty("Download limit")
     private String downloadLimit;
 
-    @CsvBindByName(column = "Download expiry days")
+    @JsonProperty("Download expiry days")
     private String downloadExpiryDays;
 
-    @CsvBindByName(column = "Parent")
+    @JsonProperty("Parent")
     private String parent;
 
-    @CsvBindByName(column = "Grouped products")
+    @JsonProperty("Grouped products")
     private String groupedProducts;
 
-    @CsvBindByName(column = "Upsells")
+    @JsonProperty("Upsells")
     private String upsells;
 
-    @CsvBindByName(column = "Cross-sells")
+    @JsonProperty("Cross-sells")
     private String crossSells;
 
-    @CsvBindByName(column = "External URL")
+    @JsonProperty("External URL")
     private String externalUrl;
 
-    @CsvBindByName(column = "Button text")
+    @JsonProperty("Button text")
     private String buttonText;
 
-    @CsvBindByName(column = "Position")
+    @JsonProperty("Position")
     private String position;
 
-    @CsvBindByName(column = "Attribute 1 name")
-    private String attribute1Name;
+    @JsonProperty("Attribute 1 name")
+    private String attribute1Name = "";
 
-    @CsvBindByName(column = "Attribute 1 value(s)")
-    private String attribute1Values;
+    @JsonProperty("Attribute 1 value(s)")
+    private String attribute1Values = "";
 
-    @CsvBindByName(column = "Attribute 1 visible")
+    @JsonProperty("Attribute 1 visible")
     private String attribute1Visible;
 
-    @CsvBindByName(column = "Attribute 1 global")
+    @JsonProperty("Attribute 1 global")
     private String attribute1Global;
 
-    @CsvBindByName(column = "Meta: slide_template")
+    @JsonProperty("Attribute 2 name")
+    private String attribute2Name;
+
+    @JsonProperty("Attribute 2 value(s)")
+    private String attribute2Values;
+
+    @JsonProperty("Attribute 2 visible")
+    private String attribute2Visible;
+
+    @JsonProperty("Attribute 2 global")
+    private String attribute2Global;
+
+    @JsonProperty("Attribute 3 name")
+    private String attribute3Name;
+
+    @JsonProperty("Attribute 3 value(s)")
+    private String attribute3Values;
+
+    @JsonProperty("Attribute 3 visible")
+    private String attribute3Visible;
+
+    @JsonProperty("Attribute 3 global")
+    private String attribute3Global;
+
+    @JsonProperty("Meta: slide_template")
     private String metaSlideTemplate;
 
-    @CsvBindByName(column = "Meta: rs_page_bg_color")
+    @JsonProperty("Meta: rs_page_bg_color")
     private String metaRsPageBgColor;
 
-    @CsvBindByName(column = "Meta: product_image_on_hover")
+    @JsonProperty("Meta: product_image_on_hover")
     private String metaProductImageOnHover;
 
-    @CsvBindByName(column = "Meta: custom_tab_priority1")
+    @JsonProperty("Meta: custom_tab_priority1")
     private String metaCustomTabPriority1;
 
-    @CsvBindByName(column = "Meta: custom_tab_priority2")
+    @JsonProperty("Meta: custom_tab_priority2")
     private String metaCustomTabPriority2;
 
-    @CsvBindByName(column = "Meta: header_view")
+    @JsonProperty("Meta: header_view")
     private String metaHeaderView;
 
-    @CsvBindByName(column = "Meta: layout")
+    @JsonProperty("Meta: layout")
     private String metaLayout;
 
-    @CsvBindByName(column = "Meta: product_layout")
+    @JsonProperty("Meta: product_layout")
     private String metaProductLayout;
 
-    @CsvBindByName(column = "Meta: custom_tab_title2")
+    @JsonProperty("Meta: custom_tab_title2")
     private String metaCustomTabTitle2;
 
-    @CsvBindByName(column = "Meta: _prevent_add_to_cart_button")
+    @JsonProperty("Meta: _prevent_add_to_cart_button")
     private String metaPreventAddToCartButton;
 
-    @CsvBindByName(column = "Meta: _wp_desired_post_slug")
+    @JsonProperty("Meta: _wp_desired_post_slug")
     private String metaWpDesiredPostSlug;
 
-    @CsvBindByName(column = "Meta: fb_product_group_id")
+    @JsonProperty("Meta: fb_product_group_id")
     private String metaFbProductGroupId;
 
-    @CsvBindByName(column = "Meta: fb_product_item_id")
+    @JsonProperty("Meta: fb_product_item_id")
     private String metaFbProductItemId;
 
-    @CsvBindByName(column = "Meta: _wc_facebook_commerce_enabled")
+    @JsonProperty("Meta: _wc_facebook_commerce_enabled")
     private String metaWcFacebookCommerceEnabled;
 
-    @CsvBindByName(column = "Meta: _wc_facebook_sync_enabled")
+    @JsonProperty("Meta: _wc_facebook_sync_enabled")
     private String metaWcFacebookSyncEnabled;
 
-    @CsvBindByName(column = "Meta: fb_visibility")
+    @JsonProperty("Meta: fb_visibility")
     private String metaFbVisibility;
 
-    @CsvBindByName(column = "Meta: fb_product_description")
+    @JsonProperty("Meta: fb_product_description")
     private String metaFbProductDescription;
 
-    @CsvBindByName(column = "Meta: _wc_facebook_product_image_source")
+    @JsonProperty("Meta: _wc_facebook_product_image_source")
     private String metaWcFacebookProductImageSource;
 
-    @CsvBindByName(column = "Meta: fb_product_image")
+    @JsonProperty("Meta: fb_product_image")
     private String metaFbProductImage;
 
-    @CsvBindByName(column = "Meta: fb_product_price")
+    @JsonProperty("Meta: fb_product_price")
     private String metaFbProductPrice;
 
-    @CsvBindByName(column = "Meta: _wc_facebook_google_product_category")
+    @JsonProperty("Meta: _wc_facebook_google_product_category")
     private String metaWcFacebookGoogleProductCategory;
 
-    @CsvBindByName(column = "Meta: _wc_facebook_enhanced_catalog_attributes_size")
+    @JsonProperty("Meta: _wc_facebook_enhanced_catalog_attributes_size")
     private String metaWcFacebookEnhancedCatalogAttributesSize;
 
-    @CsvBindByName(column = "Meta: _wc_facebook_enhanced_catalog_attributes_brand")
+    @JsonProperty("Meta: _wc_facebook_enhanced_catalog_attributes_brand")
     private String metaWcFacebookEnhancedCatalogAttributesBrand;
 
-    @CsvBindByName(column = "Meta: _wc_facebook_enhanced_catalog_attributes_pattern")
+    @JsonProperty("Meta: _wc_facebook_enhanced_catalog_attributes_pattern")
     private String metaWcFacebookEnhancedCatalogAttributesPattern;
 
-    @CsvBindByName(column = "Meta: _wc_facebook_enhanced_catalog_attributes_material")
+    @JsonProperty("Meta: _wc_facebook_enhanced_catalog_attributes_material")
     private String metaWcFacebookEnhancedCatalogAttributesMaterial;
 
-    @CsvBindByName(column = "Meta: _wc_facebook_enhanced_catalog_attributes_age_group")
+    @JsonProperty("Meta: _wc_facebook_enhanced_catalog_attributes_age_group")
     private String metaWcFacebookEnhancedCatalogAttributesAgeGroup;
 
-    @CsvBindByName(column = "Meta: _wp_old_date")
+    @JsonProperty("Meta: _wp_old_date")
     private String metaWpOldDate;
 
-    @CsvBindByName(column = "Meta: _wc_facebook_enhanced_catalog_attributes_color")
+    @JsonProperty("Meta: _wc_facebook_enhanced_catalog_attributes_color")
     private String metaWcFacebookEnhancedCatalogAttributesColor;
 
-    @CsvBindByName(column = "Meta: _wc_facebook_enhanced_catalog_attributes_gender")
+    @JsonProperty("Meta: _wc_facebook_enhanced_catalog_attributes_gender")
     private String metaWcFacebookEnhancedCatalogAttributesGender;
+
+    @JsonIgnore
+    private Map<String, String> properties = new HashMap<>();
+
+    @JsonAnySetter
+    public void add(String key, String value) {
+        properties.put(key, value);
+    }
 
 }

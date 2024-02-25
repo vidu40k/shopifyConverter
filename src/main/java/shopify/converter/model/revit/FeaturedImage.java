@@ -9,7 +9,7 @@ import java.util.List;
 public class FeaturedImage {
 
     @JsonProperty("position")
-    private Integer position;
+    private String position;
 
     @JsonProperty("alt")
     private String alt;

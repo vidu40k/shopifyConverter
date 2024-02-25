@@ -2,9 +2,6 @@ package shopify.converter.controller.motonational;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,9 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import shopify.converter.controller.ProductController;
 import shopify.converter.service.motonational.MotonationalService;
 
-import java.net.MalformedURLException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.File;
 
 
 @Controller
@@ -29,13 +24,19 @@ public class MotonationalController extends ProductController {
     @GetMapping("/downloadProduct")
     public ResponseEntity<Resource> downloadProductFile() {
 
-        motonationalService.parseToProductsCsv();
+        File file = new File(MOTONATIONAL_PRODUCTS_CSV);
+        if (!file.exists())
+            motonationalService.parseToProductsCsv();
         return motonationalService.getResourceResponseEntity(MOTONATIONAL_PRODUCTS_CSV);
+
     }
 
     @GetMapping("/downloadInventory")
     public ResponseEntity<Resource> downloadInventoryFile() {
 
+        File file = new File(MOTONATIONAL_INVENTORY_CSV);
+        if (!file.exists())
+            motonationalService.parseToProductsCsv();
         return motonationalService.getResourceResponseEntity(MOTONATIONAL_INVENTORY_CSV);
     }
 }

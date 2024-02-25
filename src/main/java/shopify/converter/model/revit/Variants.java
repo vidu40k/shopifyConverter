@@ -15,13 +15,13 @@ public class Variants {
     private String option2;
     private String option3;
     private String sku;
-    private Integer grams;
+    private String grams;
     private String inventoryTracker;
-    private Integer inventoryQty;
+    private String inventoryQty;
     private String inventoryPolicy;
     private String fulfillmentService;
-    private Double price;
-    private Double compareAtPrice;
+    private String price;
+    private String compareAtPrice;
     private Boolean taxable;
     private String barcode;
     private Boolean available;

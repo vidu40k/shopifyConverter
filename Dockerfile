@@ -11,6 +11,7 @@ FROM openjdk:17-alpine
 RUN addgroup -S app && adduser -S app -G app
 USER app
 
+
 WORKDIR /app
 COPY --from=build /app/target/ShopifyConverter-0.0.1-SNAPSHOT.jar ./revit-app.jar
 

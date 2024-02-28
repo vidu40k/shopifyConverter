@@ -1,5 +1,9 @@
 package shopify.converter.converter.motonational;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 import shopify.converter.converter.ProductConverter;
 import shopify.converter.model.Motonational.MotonationalProduct;
@@ -8,48 +12,68 @@ import shopify.converter.schema.InventorySchema;
 import shopify.converter.schema.ProductSchema;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 public class MotivationalConverter extends ProductConverter {
 
-    @Override
-    public List<InventorySchema> convertToInventorySchema(List<VendorProduct> vendorProducts) {
 
-        List<InventorySchema> inventorySchemas = new LinkedList<>();
-        Map<String, InventorySchema> variableProducts = new LinkedHashMap<>();
-        Map<String, MotonationalProduct> variationWithoutParent = new LinkedHashMap<>();
-        for (VendorProduct vendorProduct : vendorProducts) {
+    private Map<String, List<MotonationalProduct>> getProductsByType(List<VendorProduct> vendorProducts) {
 
-            MotonationalProduct motonationalProduct = (MotonationalProduct) vendorProduct;
+        HashMap<String, List<MotonationalProduct>> resultMap = new HashMap<>();
 
-            if (motonationalProduct.getType().equals("variable")) {
-                InventorySchema productSchema = createParentInventorySchema(motonationalProduct);
-                variableProducts.put(String.valueOf(motonationalProduct.getId()), productSchema);
-                continue;
-            }
+        List<MotonationalProduct> mainProducts = new ArrayList<>();
+        List<MotonationalProduct> variations = new ArrayList<>();
+        List<MotonationalProduct> simpleProducts = new ArrayList<>();
 
-            if (motonationalProduct.getType().equals("variation")) {
+        for (VendorProduct product : vendorProducts) {
+            MotonationalProduct motonationalProduct = (MotonationalProduct) product;
 
-                var parentId = extractId(motonationalProduct.getParent());
-                var parentProduct = variableProducts.get(parentId);
+            if ("variable".equals(motonationalProduct.getType())) {
+                mainProducts.add(motonationalProduct);
+            } else if ("variation".equals(motonationalProduct.getType())) {
 
-                if (variableProducts.get(parentId) == null)
-                    variationWithoutParent.put(parentId, motonationalProduct);
-                else
-                    inventorySchemas.add(createInventorySchema(motonationalProduct, parentProduct));
-                continue;
-            }
-
-            if (motonationalProduct.getType().equals("simple")) {
-                inventorySchemas.add(createSimpleInventorySchema(motonationalProduct));
+                variations.add(motonationalProduct);
+            } else if ("simple".equals(motonationalProduct.getType())) {
+                simpleProducts.add(motonationalProduct);
             }
         }
 
-        variationWithoutParent.forEach((parentId, motonationalProduct) -> {
-            var parentProduct = variableProducts.get(parentId);
-            var inventorySchema = createInventorySchema(motonationalProduct, parentProduct);
-            inventorySchemas.add(inventorySchema);
-        });
+        resultMap.put("variable", mainProducts);
+        resultMap.put("variation", variations);
+        resultMap.put("simple", simpleProducts);
+
+        return resultMap;
+    }
+
+    @Override
+    public List<InventorySchema> convertToInventorySchema(List<VendorProduct> vendorProducts) {
+
+        List<InventorySchema> inventorySchemas = new ArrayList<>();
+
+        var productsByTypes = getProductsByType(vendorProducts);
+
+        List<MotonationalProduct> mainProducts = productsByTypes.get("variable");
+        List<MotonationalProduct> variations = productsByTypes.get("variation");
+        List<MotonationalProduct> simpleProducts = productsByTypes.get("simple");
+
+        // Для каждого главного продукта находим соответствующие вариации
+        for (MotonationalProduct mainProduct : mainProducts) {
+
+            var parentInventorySchema = createParentInventorySchema(mainProduct);
+            inventorySchemas.add(parentInventorySchema);
+
+            for (MotonationalProduct variation : variations) {
+                if (mainProduct.getId().equals(extractId(variation.getParent()))) {
+                    inventorySchemas.add(createInventorySchema(variation, parentInventorySchema));
+                }
+            }
+        }
+        // Записываем простые продукты после вариаций или главных продуктов
+        for (MotonationalProduct simpleProduct : simpleProducts) {
+            inventorySchemas.add(createSimpleInventorySchema(simpleProduct));
+        }
 
         return inventorySchemas;
     }
@@ -59,59 +83,69 @@ public class MotivationalConverter extends ProductConverter {
     public List<ProductSchema> convertToProductSchema(List<VendorProduct> vendorProducts) {
 
         List<ProductSchema> productSchemas = new ArrayList<>();
-        Map<String, ProductSchema> variableProducts = new LinkedHashMap<>();
-        Map<String, Boolean> productAlreadyHaveFirstVariation = new HashMap<>();
 
-        Map<String, MotonationalProduct> variationWithoutParent = new LinkedHashMap<>();
+        var productsByTypes = getProductsByType(vendorProducts);
+        List<MotonationalProduct> mainProducts = productsByTypes.get("variable");
+        List<MotonationalProduct> variations = productsByTypes.get("variation");
+        List<MotonationalProduct> simpleProducts = productsByTypes.get("simple");
 
-        for (VendorProduct vendorProduct : vendorProducts) {
+        // Для каждого главного продукта находим соответствующие вариации
+        for (MotonationalProduct mainProduct : mainProducts) {
 
-            MotonationalProduct motonationalProduct = (MotonationalProduct) vendorProduct;
+            boolean isFirstVariation = true;
+            var parentProductSchema = createVariable(mainProduct);
 
-            String id = motonationalProduct.getId() == null ? motonationalProduct.getProperties().get("ID") : motonationalProduct.getId();
+            List<String> mainProductImages = Arrays.asList(mainProduct.getImages().split(" "));
+            List<String> unusedImages = new ArrayList<>(mainProductImages);
 
-            if (motonationalProduct.getType().equals("variable")) {
-
-                var productSchema = createVariable(motonationalProduct);
-                variableProducts.put(id, productSchema);
-                productAlreadyHaveFirstVariation.put(id, false);
-                continue;
-            }
-
-            if (motonationalProduct.getType().equals("variation")) {
-
-                var parentId = extractId(motonationalProduct.getParent());
-                var parentProduct = variableProducts.get(parentId);
-
-                if (productAlreadyHaveFirstVariation.get(parentId) == null) {
-                    variationWithoutParent.put(parentId, motonationalProduct);
-                } else {
-                    if (!productAlreadyHaveFirstVariation.get(parentId)) {
-                        productAlreadyHaveFirstVariation.put(parentId, true);
-                        var productSchema = createFirstVariation(motonationalProduct, parentProduct);
-                        productSchemas.add(productSchema);
+            for (MotonationalProduct variation : variations) {
+                if (mainProduct.getId().equals(extractId(variation.getParent()))) {
+                    if (isFirstVariation) {
+                        productSchemas.add(createFirstVariation(variation, parentProductSchema));
+                        isFirstVariation = false;
                     } else {
-                        var productSchema = createVariation(motonationalProduct, parentProduct);
-                        productSchemas.add(productSchema);
+                        productSchemas.add(createVariation(variation, parentProductSchema));
                     }
+
+                    var img = getFirstImage(variation.getImages());
+                    unusedImages = unusedImages.stream().filter(image -> !image.equals(img)).toList();
+
                 }
-
-                continue;
             }
-            if (motonationalProduct.getType().equals("simple")) {
-
-                ProductSchema product = createSimple(motonationalProduct);
-                productSchemas.add(product);
-            }
+            productSchemas.addAll(getImageProductSchemas(unusedImages, parentProductSchema));
         }
 
-        variationWithoutParent.forEach((parentId, motonationalProduct) -> {
-            var parentProduct = variableProducts.get(parentId);
-            var productSchema = createFirstVariation(motonationalProduct, parentProduct);
-            productSchemas.add(productSchema);
-        });
+        // Записываем простые продукты после вариаций или главных продуктов
+        for (MotonationalProduct simpleProduct : simpleProducts) {
+
+            List<String> mainProductImages = Arrays.asList(simpleProduct.getImages().split(" "));
+            List<String> unusedImages = new ArrayList<>(mainProductImages);
+            unusedImages.remove(getFirstImage(simpleProduct.getImages()));
+
+            var parentProductSchema = createSimple(simpleProduct);
+            productSchemas.add(parentProductSchema);
+            productSchemas.addAll(getImageProductSchemas(unusedImages, parentProductSchema));
+        }
 
         return productSchemas;
+    }
+
+    private List<ProductSchema> getImageProductSchemas(List<String> unusedImages, ProductSchema parentProductSchema) {
+
+        List<ProductSchema> productSchemas = new ArrayList<>();
+        for (String unusedImage : unusedImages) {
+            productSchemas.add(createImageProductSchema(parentProductSchema, unusedImage));
+        }
+        return productSchemas;
+    }
+
+    private ProductSchema createImageProductSchema(ProductSchema parent, String imageSrc) {
+
+        return ProductSchema.builder()
+                .imagePosition(parent.getImagePosition())
+                .imageSrc(imageSrc)
+                .handle(parent.getHandle())
+                .build();
     }
 
     private InventorySchema createSimpleInventorySchema(MotonationalProduct motonationalProduct) {
@@ -119,8 +153,8 @@ public class MotivationalConverter extends ProductConverter {
         return InventorySchema.builder()
                 .handle(createHandle(motonationalProduct.getName()))
                 .title(motonationalProduct.getName())
-                .option1Name(motonationalProduct.getAttribute1Name().isEmpty() ? "Title" : motonationalProduct.getAttribute1Name()) //For products that have no options, this should be set to "Title".
-                .option1Value(motonationalProduct.getAttribute1Values().isEmpty() ? "Default Title" : motonationalProduct.getAttribute1Values()) //For products that have no options, this should be set to "Default Title".
+                .option1Name(motonationalProduct.getAttribute1Name().isEmpty() ? "Title" : motonationalProduct.getAttribute1Name())
+                .option1Value(motonationalProduct.getAttribute1Values().isEmpty() ? "Default Title" : motonationalProduct.getAttribute1Values())
                 .option2Name(motonationalProduct.getAttribute2Name())
                 .option2Value(motonationalProduct.getAttribute2Values())
                 .option3Name(motonationalProduct.getAttribute3Name())
@@ -132,14 +166,18 @@ public class MotivationalConverter extends ProductConverter {
                 .incoming(null)
                 .unavailable(null)
                 .committed(null)
-                .available(motonationalProduct.getInStock().equals("1") ? 10 : 0)
-                .onHand(motonationalProduct.getInStock().equals("1") ? 10 : 0)
+                .available(isHasPrice(motonationalProduct) ? 10 : 0)
+                .onHand(isHasPrice(motonationalProduct) ? 10 : 0)
                 .build();
     }
 
     private InventorySchema createParentInventorySchema(MotonationalProduct motonationalProduct) {
 
-        return InventorySchema.builder().handle(createHandle(motonationalProduct.getName())).title(motonationalProduct.getName()).build();
+        return InventorySchema
+                .builder()
+                .handle(createHandle(motonationalProduct.getName()))
+                .title(motonationalProduct.getName())
+                .build();
     }
 
     private InventorySchema createInventorySchema(MotonationalProduct motonationalProduct, InventorySchema parentInventoryProduct) {
@@ -147,8 +185,8 @@ public class MotivationalConverter extends ProductConverter {
         return InventorySchema.builder()
                 .handle(parentInventoryProduct.getHandle())
                 .title(parentInventoryProduct.getTitle())
-                .option1Name(motonationalProduct.getAttribute1Name().isEmpty() ? "Title" : motonationalProduct.getAttribute1Name()) //For products that have no options, this should be set to "Title".
-                .option1Value(motonationalProduct.getAttribute1Values().isEmpty() ? "Default Title" : motonationalProduct.getAttribute1Values()) //For products that have no options, this should be set to "Default Title".
+                .option1Name(motonationalProduct.getAttribute1Name())
+                .option1Value(motonationalProduct.getAttribute1Values())
                 .option2Name(motonationalProduct.getAttribute2Name())
                 .option2Value(motonationalProduct.getAttribute2Values())
                 .option3Name(motonationalProduct.getAttribute3Name())
@@ -160,8 +198,8 @@ public class MotivationalConverter extends ProductConverter {
                 .incoming(null)
                 .unavailable(null)
                 .committed(null)
-                .available(motonationalProduct.getInStock().equals("1") ? 10 : 0)
-                .onHand(motonationalProduct.getInStock().equals("1") ? 10 : 0)
+                .available(isHasPrice(motonationalProduct) ? 10 : 0)
+                .onHand(isHasPrice(motonationalProduct) ? 10 : 0)
                 .build();
     }
 
@@ -172,12 +210,12 @@ public class MotivationalConverter extends ProductConverter {
                 .title(parentProduct.getTitle())
                 .bodyHtml(parentProduct.getBodyHtml())
                 .vendor(parentProduct.getVendor())
-                .productCategory(parentProduct.getProductCategory())
+                .productCategory("")
                 .type(parentProduct.getType())
 //                        .tags("")
                 .published(parentProduct.getPublished())
-                .option1Name(motonationalProduct.getAttribute1Name().isEmpty() ? "Title" : motonationalProduct.getAttribute1Name()) //For products that have no options, this should be set to "Title".
-                .option1Value(motonationalProduct.getAttribute1Values().isEmpty() ? "Default Title" : motonationalProduct.getAttribute1Values()) //For products that have no options, this should be set to "Default Title".
+                .option1Name(motonationalProduct.getAttribute1Name())
+                .option1Value(motonationalProduct.getAttribute1Values())
                 .option2Name(parentProduct.getOption2Name())
                 .option2Value(motonationalProduct.getAttribute2Values())
                 .option3Name(parentProduct.getOption3Name())
@@ -185,32 +223,22 @@ public class MotivationalConverter extends ProductConverter {
                 .variantSku(motonationalProduct.getSku())
                 .variantGrams(motonationalProduct.getWeight())
                 .variantInventoryTracker("shopify")
-                .variantInventoryQty(motonationalProduct.getInStock().equals("1") ? "10" : "0")
+                .variantInventoryQty(isHasPrice(motonationalProduct) ? "10" : "0")
                 .variantInventoryPolicy("deny").variantFulfillmentService("manual")
-                .variantPrice(motonationalProduct.getRegularPrice().isEmpty() ? null : motonationalProduct.getRegularPrice().equals("default") ? motonationalProduct.getSalePrice() : motonationalProduct.getRegularPrice())
+                .variantPrice(isHasPrice(motonationalProduct) ? motonationalProduct.getRegularPrice() : "")
                 .variantCompareAtPrice(null).variantRequiresShipping(true)
                 .variantTaxable(motonationalProduct.getTaxStatus().equals("taxable"))
-                .variantBarcode("").imageSrc(parentProduct.getImageSrc())
+                .variantBarcode("")
+                .imageSrc(parentProduct.getImageSrc())
                 .imagePosition((motonationalProduct.getPosition()))
                 .imageAltText("")
                 .giftCard("")
-                .seoTitle(motonationalProduct.getShortDescription())
-                .seoDescription(motonationalProduct.getDescription())
-                .googleShoppingProductCategory("")
-                .googleShoppingGender("")
-                .googleShoppingAgeGroup("")
-                .googleShoppingMPN("")
-                .googleShoppingCondition("")
-                .googleShoppingCustomProduct("")
-                .googleShoppingCustomLabel0("")
-                .googleShoppingCustomLabel1("")
-                .googleShoppingCustomLabel2("")
-                .googleShoppingCustomLabel3("")
-                .googleShoppingCustomLabel4("")
-                .variantImage("")
+                .seoTitle(motonationalProduct.getName())
+                .seoDescription(convertString(extractTextFromHTML(motonationalProduct.getDescription())))
+                .variantImage(getFirstImage(motonationalProduct.getImages()))
                 .variantWeightUnit("kg")
                 .variantTaxCode("")
-                .costPerItem((motonationalProduct.getRegularPrice().equals("default") ? motonationalProduct.getSalePrice() : motonationalProduct.getRegularPrice()))
+                .costPerItem("0")
                 .includedAustralia(true)
                 .priceAustralia(null)
                 .compareAtPriceAustralia(null)
@@ -226,16 +254,16 @@ public class MotivationalConverter extends ProductConverter {
 
         return ProductSchema.builder()
                 .handle(createHandle(parentProduct.getTitle()))
-                .option1Value(motonationalProduct.getAttribute1Values().isEmpty() ? "Default Title" : motonationalProduct.getAttribute1Values()) //For products that have no options, this should be set to "Default Title".
+                .option1Value(motonationalProduct.getAttribute1Values())
                 .option2Value(motonationalProduct.getAttribute2Values())
                 .option3Value(motonationalProduct.getAttribute3Values())
                 .variantSku(motonationalProduct.getSku())
                 .variantGrams(motonationalProduct.getWeight())
                 .variantInventoryTracker("shopify")
-                .variantInventoryQty(motonationalProduct.getInStock().equals("1") ? "10" : "0")
+                .variantInventoryQty(isHasPrice(motonationalProduct) ? "10" : "0")
                 .variantInventoryPolicy("deny")
                 .variantFulfillmentService("manual")
-                .variantPrice(motonationalProduct.getRegularPrice() == null ? null : (motonationalProduct.getRegularPrice().equals("default") ? motonationalProduct.getSalePrice() : motonationalProduct.getRegularPrice()))
+                .variantPrice(isHasPrice(motonationalProduct) ? motonationalProduct.getRegularPrice() : "")
                 .variantCompareAtPrice(null)
                 .variantTaxCode("")
                 .variantRequiresShipping(true)
@@ -244,10 +272,10 @@ public class MotivationalConverter extends ProductConverter {
                 .imageSrc(parentProduct.getImageSrc())
                 .imagePosition((motonationalProduct.getPosition()))
                 .giftCard("")
-                .variantImage("")
+                .variantImage(getFirstImage(motonationalProduct.getImages()))
                 .variantTaxCode("")
                 .variantWeightUnit("kg")
-                .costPerItem((motonationalProduct.getRegularPrice().equals("default") ? motonationalProduct.getSalePrice() : motonationalProduct.getRegularPrice()))
+                .costPerItem("0")
                 .build();
     }
 
@@ -255,41 +283,30 @@ public class MotivationalConverter extends ProductConverter {
         return ProductSchema.builder()
                 .handle(createHandle(motonationalProduct.getName()))
                 .title(motonationalProduct.getName())
-                .bodyHtml(replaceHeadersWithH6(convertString(motonationalProduct.getDescription().isEmpty() ? motonationalProduct.getShortDescription() : motonationalProduct.getDescription())))
+                .bodyHtml(convertString(replaceHeadersWithH6(motonationalProduct.getDescription().isEmpty() ? motonationalProduct.getShortDescription() : motonationalProduct.getDescription())))
                 .vendor("Motonational")
-                .productCategory(motonationalProduct.getCategories())//todo
+                .productCategory("")
                 .type("")//todo
                 .published(motonationalProduct.getPublished().equals("1"))
-                .option1Name(motonationalProduct.getAttribute1Name().isEmpty() ? "Title" : motonationalProduct.getAttribute1Name()) //For products that have no options, this should be set to "Title".
+                .option1Name(motonationalProduct.getAttribute1Name())
                 .option2Name(motonationalProduct.getAttribute2Name())
                 .option3Name(motonationalProduct.getAttribute3Name())
                 .giftCard("")
-                .seoTitle(motonationalProduct.getShortDescription())
-                .seoDescription(motonationalProduct.getDescription())
-                .googleShoppingProductCategory("")
-                .googleShoppingGender("")
-                .googleShoppingAgeGroup("")
-                .googleShoppingMPN("")
-                .googleShoppingCondition("")
-                .googleShoppingCustomProduct("")
-                .googleShoppingCustomLabel0("")
-                .googleShoppingCustomLabel1("")
-                .googleShoppingCustomLabel2("")
-                .googleShoppingCustomLabel3("")
-                .googleShoppingCustomLabel4("")
+                .seoTitle(motonationalProduct.getName())
+                .seoDescription(convertString(extractTextFromHTML(motonationalProduct.getDescription())))
                 .includedAustralia(true)
                 .includedInternational(true)
                 .status("draft")
-                .imageSrc(motonationalProduct.getImages())
+                .imageSrc(getFirstImage(motonationalProduct.getImages()))
                 .build();
 
     }
 
     private ProductSchema createSimple(MotonationalProduct motonationalProduct) {
         return ProductSchema.builder().handle(createHandle(motonationalProduct.getName())).title(motonationalProduct.getName())
-                .bodyHtml(replaceHeadersWithH6(convertString(motonationalProduct.getDescription().isEmpty() ? motonationalProduct.getShortDescription() : motonationalProduct.getDescription())))
-                .vendor("Motonational")//todo
-                .productCategory(motonationalProduct.getCategories())
+                .bodyHtml(replaceHeadersWithH6(convertString(motonationalProduct.getDescription())))
+                .vendor("Motonational")
+                .productCategory("")
                 .type("")
 //                        .tags("")
                 .published(motonationalProduct.getPublished().equals("1"))
@@ -302,34 +319,23 @@ public class MotivationalConverter extends ProductConverter {
                 .variantSku(motonationalProduct.getSku())
                 .variantGrams(motonationalProduct.getWeight())
                 .variantInventoryTracker("shopify")
-                .variantInventoryQty(motonationalProduct.getInStock().equals("1") ? "10" : "0")
+                .variantInventoryQty(isHasPrice(motonationalProduct) ? "10" : "0")
                 .variantInventoryPolicy("deny")
                 .variantFulfillmentService("manual")
-                .variantPrice(motonationalProduct.getRegularPrice().isEmpty() ? null : (motonationalProduct.getRegularPrice().equals("default") ? motonationalProduct.getSalePrice() : motonationalProduct.getRegularPrice()))
+                .variantPrice(isHasPrice(motonationalProduct) ? motonationalProduct.getRegularPrice() : "")
                 .variantCompareAtPrice(null)
                 .variantRequiresShipping(true)
                 .variantTaxable(motonationalProduct.getTaxStatus().equals("taxable")).variantBarcode("")
-                .imageSrc(motonationalProduct.getImages())
+                .imageSrc(getFirstImage(motonationalProduct.getImages()))
                 .imagePosition((motonationalProduct.getPosition()))
                 .imageAltText("")
                 .giftCard("")
-                .seoTitle(motonationalProduct.getShortDescription())
-                .seoDescription(motonationalProduct.getDescription())
-                .googleShoppingProductCategory("")
-                .googleShoppingGender("")
-                .googleShoppingAgeGroup("")
-                .googleShoppingMPN("")
-                .googleShoppingCondition("")
-                .googleShoppingCustomProduct("")
-                .googleShoppingCustomLabel0("")
-                .googleShoppingCustomLabel1("")
-                .googleShoppingCustomLabel2("")
-                .googleShoppingCustomLabel3("")
-                .googleShoppingCustomLabel4("")
+                .seoTitle(motonationalProduct.getName())
+                .seoDescription(convertString(extractTextFromHTML(motonationalProduct.getDescription())))
                 .variantImage("")
                 .variantWeightUnit("kg")
                 .variantTaxCode("")
-                .costPerItem(motonationalProduct.getRegularPrice().isEmpty() ? null : (motonationalProduct.getRegularPrice().equals("default") ? motonationalProduct.getSalePrice() : motonationalProduct.getRegularPrice()))
+                .costPerItem("0")
                 .includedAustralia(true)
                 .priceAustralia(null)
                 .compareAtPriceAustralia(null)
@@ -342,7 +348,19 @@ public class MotivationalConverter extends ProductConverter {
 
     private String createHandle(String title) {
         String lowerCase = title.toLowerCase();
-        return lowerCase.replace(" ", "-");
+
+        String characters = " \\$&`:<>()\\[\\]{}“\\+/'\"^’";
+        Pattern pattern = Pattern.compile("[" + Pattern.quote(characters) + "]");
+        Matcher matcher = pattern.matcher(lowerCase);
+        String handle = matcher.replaceAll("-");
+
+        // Удаление последовательных символов "-"
+        handle = handle.replaceAll("-{2,}", "-");
+
+        // Удаление символов "-" в начале и конце строки
+        handle = handle.replaceAll("^-|-$", "");
+
+        return handle;
     }
 
     private static String extractId(String input) {
@@ -352,4 +370,33 @@ public class MotivationalConverter extends ProductConverter {
         }
         return "";
     }
+
+    public String extractTextFromHTML(String html) {
+        StringBuilder textContent = new StringBuilder();
+
+        Document doc = Jsoup.parse(html);
+
+        // Находим все текстовые элементы в документе
+        Elements elements = doc.select(":matchesOwn((?i)\\b\\w+\\b)");
+        for (Element element : elements) {
+            textContent.append(element.text()).append(" ");
+        }
+
+        return textContent.toString().trim();
+    }
+
+    public String getFirstImage(String images) {
+        var imagesList = List.of(images.split(" "));
+        if (!imagesList.isEmpty())
+            return imagesList.get(0);
+        return "";
+    }
+
+    private static boolean isHasPrice(MotonationalProduct motonationalProduct) {
+        boolean hasPrice = !motonationalProduct.getRegularPrice().isEmpty();
+        if (hasPrice)
+            hasPrice = Double.parseDouble(motonationalProduct.getRegularPrice()) != 0;
+        return hasPrice;
+    }
+
 }

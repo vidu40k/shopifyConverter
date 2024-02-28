@@ -97,7 +97,7 @@ public class RevitConverter extends ProductConverter {
                         .imageAltText(variant.getFeaturedImage() == null ? "" : variant.getFeaturedImage().getAlt())
                         .variantImage(variant.getFeaturedImage() == null ? "" : variant.getFeaturedImage().getSrc())
                         .variantTaxCode("")
-                        .costPerItem(variant.getPrice())
+                        .costPerItem("0")
                         .variantWeightUnit("kg")
                         .build();
 
@@ -149,11 +149,8 @@ public class RevitConverter extends ProductConverter {
             }
         }
 
-
-
         return productSchemas;
     }
-
 
 
     private String extractContentInSpans(String inputString) {

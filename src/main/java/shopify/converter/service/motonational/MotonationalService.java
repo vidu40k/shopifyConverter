@@ -38,16 +38,16 @@ public class MotonationalService extends ProductService {
 
     private static final String APPLICATION_NAME = "ShopifyConverter";
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
-    private static final String TOKENS_DIRECTORY_PATH = "/app";
+    private static final String TOKENS_DIRECTORY_PATH = "/tokens";
     private static final List<String> SCOPES =
             Collections.singletonList(DriveScopes.DRIVE);
-    private static final String CREDENTIALS_FILE_PATH = "credentials.json";
+    private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
     private static final String CSV_FOLDER_NAME = "CSV";
     private static final String MOTONATIONAL_EXTERNAL_PRODUCTS = "Motonational.csv";
     private static final String MOTONATIONAL_EXTERNAL_PRODUCTS_NO_BOM = "MotonationalNoBom.csv";
 
-    private static final String MOTONATIONAL_PRODUCTS_CSV = "motonational-products.csv";
-    private static final String MOTONATIONAL_INVENTORY_CSV = "motonational-inventory.csv";
+    private static final String MOTONATIONAL_PRODUCTS_CSV = "src/main/resources/products/motonational/product.csv";
+    private static final String MOTONATIONAL_INVENTORY_CSV = "src/main/resources/products/motonational/inventory.csv";
 
     private final MotivationalConverter motivationalConverter;
     private final FileCleanupScheduler fileCleanupScheduler;
@@ -55,7 +55,7 @@ public class MotonationalService extends ProductService {
     public void parseToProductsCsv() {
 
         try {
-            downloadExternalCsv();
+//            downloadExternalCsv();
 
             var motonationalProducts = readCsvFile(MOTONATIONAL_EXTERNAL_PRODUCTS_NO_BOM);
             saveCsvFile(new ArrayList<>(motonationalProducts), motivationalConverter, MOTONATIONAL_PRODUCTS_CSV, MOTONATIONAL_INVENTORY_CSV);
@@ -65,7 +65,7 @@ public class MotonationalService extends ProductService {
             fileCleanupScheduler.addFilePath(MOTONATIONAL_PRODUCTS_CSV);
             fileCleanupScheduler.addFilePath(MOTONATIONAL_INVENTORY_CSV);
 
-        } catch (IOException | GeneralSecurityException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }

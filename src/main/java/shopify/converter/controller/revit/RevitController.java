@@ -17,8 +17,8 @@ import java.io.File;
 public class RevitController extends ProductController {
 
     private static final String REVIT_REQUEST = "https://www.revitaustralia.com.au/products.json?limit=250&page=1";
-    public static final String PRODUCT_CSV_PATH = "revit-products.csv";
-    public static final String INVENTORY_CSV_PATH = "revit-inventory.csv";
+    public static final String PRODUCT_CSV_PATH = "src/main/resources/products/revit/products.csv";
+    public static final String INVENTORY_CSV_PATH = "src/main/resources/products/revit/inventory.csv";
 
     private final RevitService revitService;
 

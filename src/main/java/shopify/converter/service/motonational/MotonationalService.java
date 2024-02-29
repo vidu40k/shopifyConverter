@@ -46,7 +46,7 @@ public class MotonationalService extends ProductService {
     private static final String MOTONATIONAL_EXTERNAL_PRODUCTS = "Motonational.csv";
     private static final String MOTONATIONAL_EXTERNAL_PRODUCTS_NO_BOM = "MotonationalNoBom.csv";
 
-    private static final String MOTONATIONAL_PRODUCTS_CSV = "src/main/resources/products/motonational/product.csv";
+    private static final String MOTONATIONAL_PRODUCTS_CSV = "src/main/resources/products/motonational/products.csv";
     private static final String MOTONATIONAL_INVENTORY_CSV = "src/main/resources/products/motonational/inventory.csv";
 
     private final MotivationalConverter motivationalConverter;
@@ -55,22 +55,44 @@ public class MotonationalService extends ProductService {
     public void parseToProductsCsv() {
 
         try {
-//            downloadExternalCsv();
 
-            var motonationalProducts = readCsvFile(MOTONATIONAL_EXTERNAL_PRODUCTS_NO_BOM);
+            List<MotonationalProduct> motonationalProducts = new ArrayList<>();
+           var fileList =  downloadExternalCsv();
+
+//            List<String> fileList = new ArrayList<>();
+//            fileList.add("initialData/motonational/FalcoBoot-product-export-21-12-2023-1703118963752.csv");
+//            fileList.add("initialData/motonational/Kabuto-product-export-21-12-2023-1703121210293.csv");
+//            fileList.add("initialData/motonational/Bobster_ProductCSV_5-12-23.csv");
+//            fileList.add("initialData/motonational/Crocbite_ProductCSV_5-12-23.csv");
+//            fileList.add("initialData/motonational/Airoh-product-export-21-12-2023-1703113161643.csv");
+//            fileList.add("initialData/motonational/Lok-Up-product-export-21-12-2023-1703122402593.csv");
+//            fileList.add("initialData/motonational/CUBE-product-export-21-12-2023-1703115647290.csv");
+//            fileList.add("initialData/motonational/Motodry-product-export-21-12-2023-1703123181623.csv");
+//            fileList.add("initialData/motonational/Five-Gloves-product-export-21-12-2023-1703117676003.csv");
+//            fileList.add("initialData/motonational/MotoPlus_ProductCSV_5-12-23.csv");
+//            fileList.add("initialData/motonational/MX-Net-product-export-21-12-2023-1703124027448.csv");
+//            fileList.add("initialData/motonational/RXT-product-export-21-12-2023-1703130542620.csv");
+//            fileList.add("initialData/motonational/Shad-product-export-21-12-2023-1703128792741.csv");
+//            fileList.add("initialData/motonational/TBR-product-export-21-12-2023-1703131291545.csv");
+//            fileList.add("initialData/motonational/ZanHeadgear_ProductCSV_5-12-23.csv");
+//            fileList.add("initialData/motonational/Zero-product-export-21-12-2023-1703132384235.csv");
+
+            for (String filePath : fileList){
+                motonationalProducts.addAll(readCsvFile(filePath));
+            }
             saveCsvFile(new ArrayList<>(motonationalProducts), motivationalConverter, MOTONATIONAL_PRODUCTS_CSV, MOTONATIONAL_INVENTORY_CSV);
 
-            fileCleanupScheduler.addFilePath(MOTONATIONAL_EXTERNAL_PRODUCTS);
-            fileCleanupScheduler.addFilePath(MOTONATIONAL_EXTERNAL_PRODUCTS_NO_BOM);
-            fileCleanupScheduler.addFilePath(MOTONATIONAL_PRODUCTS_CSV);
-            fileCleanupScheduler.addFilePath(MOTONATIONAL_INVENTORY_CSV);
+//            fileCleanupScheduler.addFilePath(MOTONATIONAL_EXTERNAL_PRODUCTS);
+//            fileCleanupScheduler.addFilePath(MOTONATIONAL_EXTERNAL_PRODUCTS_NO_BOM);
+//            fileCleanupScheduler.addFilePath(MOTONATIONAL_PRODUCTS_CSV);
+//            fileCleanupScheduler.addFilePath(MOTONATIONAL_INVENTORY_CSV);
 
-        } catch (IOException e) {
+        } catch (IOException | GeneralSecurityException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void downloadExternalCsv() throws GeneralSecurityException, IOException {
+    public List<String> downloadExternalCsv() throws GeneralSecurityException, IOException {
 
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
         Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
@@ -96,16 +118,18 @@ public class MotonationalService extends ProductService {
         vendors.put("Moto+", "https://drive.google.com/drive/folders/10JLLuV3Atf0gmorZlmUfycpveftFkES7");
         vendors.put("ZANheadgear", "https://drive.google.com/drive/folders/1Wu65ADEwRvzEJolPbYuDSyZOx2B0zdhA");
 
-        List<CSVRecord> csvRecords = new ArrayList<>();
+        List<String> initialFilePaths = new ArrayList<>();
 
         List<com.google.api.services.drive.model.File> files = getCSVFilesInFolder(service, new ArrayList<>(vendors.values()));
         for (com.google.api.services.drive.model.File file : files) {
+
             InputStream csvInputStream = downloadCsvFile(service, file.getId());
-            csvRecords.addAll(readCSVFromInputStream(csvInputStream));
+            List<CSVRecord> csvRecords = new ArrayList<>(readCSVFromInputStream(csvInputStream));
+            initialFilePaths.add(writeCSVToFile(processCSVRecords(csvRecords), file.getName()));
+//            removeBOM(MOTONATIONAL_EXTERNAL_PRODUCTS, MOTONATIONAL_EXTERNAL_PRODUCTS_NO_BOM);
         }
 
-        writeCSVToFile(processCSVRecords(csvRecords), MOTONATIONAL_EXTERNAL_PRODUCTS);
-        removeBOM(MOTONATIONAL_EXTERNAL_PRODUCTS, MOTONATIONAL_EXTERNAL_PRODUCTS_NO_BOM);
+        return initialFilePaths;
     }
 
     private static void removeBOM(String inputFilePath, String outputFilePath) {
@@ -179,8 +203,10 @@ public class MotonationalService extends ProductService {
         return products;
     }
 
-    private void writeCSVToFile(List<List<String>> records, String fileName) {
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), StandardCharsets.UTF_8))) {
+    private String writeCSVToFile(List<List<String>> records, String fileName) {
+
+        String path = "initialData/motonational/" + fileName;
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path), StandardCharsets.UTF_8))) {
             for (List<String> record : records) {
                 StringBuilder line = new StringBuilder();
                 for (String value : record) {
@@ -196,6 +222,7 @@ public class MotonationalService extends ProductService {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return path;
     }
 
     private List<List<String>> processCSVRecords(List<CSVRecord> records) {

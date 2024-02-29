@@ -62,10 +62,10 @@ public class MotivationalConverter extends ProductConverter {
         for (MotonationalProduct mainProduct : mainProducts) {
 
             var parentInventorySchema = createParentInventorySchema(mainProduct);
-            inventorySchemas.add(parentInventorySchema);
 
             for (MotonationalProduct variation : variations) {
                 if (mainProduct.getId().equals(extractId(variation.getParent()))) {
+
                     inventorySchemas.add(createInventorySchema(variation, parentInventorySchema));
                 }
             }
@@ -99,19 +99,17 @@ public class MotivationalConverter extends ProductConverter {
             List<String> unusedImages = new ArrayList<>(mainProductImages);
 
             for (MotonationalProduct variation : variations) {
-                if (mainProduct.getId().equals(extractId(variation.getParent()))) {
+                if (mainProduct.getId().equals(extractId(variation.getParent())) && variation.getName().contains(mainProduct.getName())) {
                     if (isFirstVariation) {
                         productSchemas.add(createFirstVariation(variation, parentProductSchema));
                         isFirstVariation = false;
                     } else {
                         productSchemas.add(createVariation(variation, parentProductSchema));
                     }
-
-                    var img = getFirstImage(variation.getImages());
-                    unusedImages = unusedImages.stream().filter(image -> !image.equals(img)).toList();
-
                 }
             }
+
+            unusedImages.remove(0);
             productSchemas.addAll(getImageProductSchemas(unusedImages, parentProductSchema));
         }
 
@@ -120,7 +118,7 @@ public class MotivationalConverter extends ProductConverter {
 
             List<String> mainProductImages = Arrays.asList(simpleProduct.getImages().split(" "));
             List<String> unusedImages = new ArrayList<>(mainProductImages);
-            unusedImages.remove(getFirstImage(simpleProduct.getImages()));
+            unusedImages.remove(0);
 
             var parentProductSchema = createSimple(simpleProduct);
             productSchemas.add(parentProductSchema);
@@ -349,7 +347,7 @@ public class MotivationalConverter extends ProductConverter {
     private String createHandle(String title) {
         String lowerCase = title.toLowerCase();
 
-        String characters = " \\$&`:<>()\\[\\]{}“\\+/'\"^’";
+        String characters = " \\$&`:<>()\\[\\]{}“\\+/'\"^’”‘";
         Pattern pattern = Pattern.compile("[" + Pattern.quote(characters) + "]");
         Matcher matcher = pattern.matcher(lowerCase);
         String handle = matcher.replaceAll("-");
@@ -395,7 +393,7 @@ public class MotivationalConverter extends ProductConverter {
     private static boolean isHasPrice(MotonationalProduct motonationalProduct) {
         boolean hasPrice = !motonationalProduct.getRegularPrice().isEmpty();
         if (hasPrice)
-            hasPrice = Double.parseDouble(motonationalProduct.getRegularPrice()) != 0;
+            hasPrice = Double.parseDouble(motonationalProduct.getRegularPrice()) > 0;
         return hasPrice;
     }
 

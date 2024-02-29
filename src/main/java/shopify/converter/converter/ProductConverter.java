@@ -14,7 +14,9 @@ public abstract class ProductConverter {
 
     protected String convertString(String stringToConvert) {
 
-        stringToConvert = stringToConvert.replaceAll("\\n", "");
+
+
+        stringToConvert = stringToConvert.replaceAll("\\\\n", "");
         stringToConvert = stringToConvert.replace("\"", "\"\"");
         return "\"" + stringToConvert + "\"";
 

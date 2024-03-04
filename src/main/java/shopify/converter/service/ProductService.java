@@ -1,6 +1,7 @@
 package shopify.converter.service;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -13,17 +14,20 @@ import shopify.converter.schema.CSVSchema;
 import shopify.converter.schema.InventorySchema;
 import shopify.converter.schema.ProductSchema;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Service
-public class ProductService {
+public abstract class ProductService {
+
+    public abstract Map<String,List<String>> parseToProductsCsv();
 
     public ResponseEntity<Resource> getResourceResponseEntity(String csvFilePath) {
 
@@ -45,6 +49,46 @@ public class ProductService {
                 .contentType(MediaType.parseMediaType("application/csv"))
                 .body(resource);
     }
+
+
+    public ResponseEntity<Resource> getResourceResponseEntityZip(String zipFileName,List<String> files){
+
+        byte[] zipBytes; // Создаем ZIP-архив с файлами CSV
+        try {
+            zipBytes = createZipFile(files);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Создаем ресурс из массива байтов
+        ByteArrayResource resource = new ByteArrayResource(zipBytes);
+
+        // Устанавливаем заголовки для ответа
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentDispositionFormData("attachment", zipFileName + ".zip");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentLength(zipBytes.length)
+                .body(resource);
+    }
+    private byte[] createZipFile(List<String> csvFilePaths) throws IOException {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try (ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream)) {
+            for (String csvFilePath : csvFilePaths) {
+                Path csvPath = Paths.get(csvFilePath);
+                byte[] bytes = Files.readAllBytes(csvPath);
+                ZipEntry zipEntry = new ZipEntry(csvPath.getFileName().toString());
+                zipOutputStream.putNextEntry(zipEntry);
+                zipOutputStream.write(bytes);
+                zipOutputStream.closeEntry();
+            }
+        }
+        return outputStream.toByteArray();
+    }
+
+
 
 
     private String extractFileName(String filePath) {

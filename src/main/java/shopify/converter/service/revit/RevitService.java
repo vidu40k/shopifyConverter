@@ -11,6 +11,7 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.springframework.stereotype.Service;
 import shopify.converter.controller.ProductController;
 import shopify.converter.controller.revit.RevitController;
+import shopify.converter.controller.whitesmoto.WhitesmotoController;
 import shopify.converter.model.VendorProduct;
 import shopify.converter.response.revit.ProductsResponse;
 import shopify.converter.service.ProductService;
@@ -19,18 +20,22 @@ import shopify.converter.util.FileCleanupScheduler;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class RevitService extends ProductService {
 
+    private static final String REVIT_REQUEST = "https://www.revitaustralia.com.au/products.json?limit=250&page=1";
     private final RevitConverter revitConverter;
     private final FileCleanupScheduler fileCleanupScheduler;
 
-    public void parseToProductsCsv(String url) throws RuntimeException {
+    @Override
+    public Map<String,List<String>> parseToProductsCsv() throws RuntimeException {
 
-        ProductsResponse productsResponse = getProductResponse(url);
+        ProductsResponse productsResponse = getProductResponse(REVIT_REQUEST);
         if (productsResponse != null) {
             var products = productsResponse.getProducts();
 
@@ -45,6 +50,11 @@ public class RevitService extends ProductService {
                 throw new RuntimeException("cannot get products from api");
             }
         }
+
+        Map<String,List<String>> map = new HashMap<>();
+        map.put("products",new ArrayList<>(List.of(RevitController.PRODUCT_CSV_PATH)));
+        map.put("inventory",new ArrayList<>(List.of(RevitController.INVENTORY_CSV_PATH)));
+        return map;
     }
 
     private ProductsResponse getProductResponse(String url) throws RuntimeException {

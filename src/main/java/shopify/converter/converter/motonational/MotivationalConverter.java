@@ -12,8 +12,6 @@ import shopify.converter.schema.InventorySchema;
 import shopify.converter.schema.ProductSchema;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Component
 public class MotivationalConverter extends ProductConverter {
@@ -150,7 +148,7 @@ public class MotivationalConverter extends ProductConverter {
 
         return InventorySchema.builder()
                 .handle(createHandle(motonationalProduct.getName()))
-                .title(motonationalProduct.getName())
+                .title(convertString(motonationalProduct.getName()))
                 .option1Name(motonationalProduct.getAttribute1Name().isEmpty() ? "Title" : motonationalProduct.getAttribute1Name())
                 .option1Value(motonationalProduct.getAttribute1Values().isEmpty() ? "Default Title" : motonationalProduct.getAttribute1Values())
                 .option2Name(motonationalProduct.getAttribute2Name())
@@ -174,7 +172,7 @@ public class MotivationalConverter extends ProductConverter {
         return InventorySchema
                 .builder()
                 .handle(createHandle(motonationalProduct.getName()))
-                .title(motonationalProduct.getName())
+                .title(convertString(motonationalProduct.getName()))
                 .build();
     }
 
@@ -280,7 +278,7 @@ public class MotivationalConverter extends ProductConverter {
     private ProductSchema createVariable(MotonationalProduct motonationalProduct) {
         return ProductSchema.builder()
                 .handle(createHandle(motonationalProduct.getName()))
-                .title(motonationalProduct.getName())
+                .title(convertString(motonationalProduct.getName()))
                 .bodyHtml(convertString(replaceHeadersWithH6(motonationalProduct.getDescription().isEmpty() ? motonationalProduct.getShortDescription() : motonationalProduct.getDescription())))
                 .vendor("Motonational")
                 .productCategory("")
@@ -301,7 +299,8 @@ public class MotivationalConverter extends ProductConverter {
     }
 
     private ProductSchema createSimple(MotonationalProduct motonationalProduct) {
-        return ProductSchema.builder().handle(createHandle(motonationalProduct.getName())).title(motonationalProduct.getName())
+        return ProductSchema.builder().handle(createHandle(motonationalProduct.getName()))
+                .title(convertString(motonationalProduct.getName()))
                 .bodyHtml(replaceHeadersWithH6(convertString(motonationalProduct.getDescription())))
                 .vendor("Motonational")
                 .productCategory("")
@@ -345,21 +344,15 @@ public class MotivationalConverter extends ProductConverter {
 
 
     private String createHandle(String title) {
+
         String lowerCase = title.toLowerCase();
-
-        String characters = " \\$&`:<>()\\[\\]{}“\\+/'\"^’”‘";
-        Pattern pattern = Pattern.compile("[" + Pattern.quote(characters) + "]");
-        Matcher matcher = pattern.matcher(lowerCase);
-        String handle = matcher.replaceAll("-");
-
-        // Удаление последовательных символов "-"
+        String handle = lowerCase.replaceAll("[^a-z0-9-]", "-");
         handle = handle.replaceAll("-{2,}", "-");
-
-        // Удаление символов "-" в начале и конце строки
         handle = handle.replaceAll("^-|-$", "");
 
         return handle;
     }
+
 
     private static String extractId(String input) {
         int colonIndex = input.indexOf(':');

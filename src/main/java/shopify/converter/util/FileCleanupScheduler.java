@@ -15,7 +15,7 @@ public class FileCleanupScheduler {
         filePaths.add(filePath);
     }
 
-    @Scheduled(fixedDelay = 300000)
+    @Scheduled(fixedDelay = 120000)
     public void deleteFilesAfterDelay() {
         for (String filePath : filePaths) {
             File fileToDelete = new File(filePath);

@@ -10,33 +10,34 @@ import shopify.converter.controller.ProductController;
 import shopify.converter.service.revit.RevitService;
 
 import java.io.File;
+import java.util.Collections;
 
 @Controller
 @RequestMapping("converter/revit")
 @RequiredArgsConstructor
 public class RevitController extends ProductController {
 
-    private static final String REVIT_REQUEST = "https://www.revitaustralia.com.au/products.json?limit=250&page=1";
-    public static final String PRODUCT_CSV_PATH = "src/main/resources/products/revit/products.csv";
-    public static final String INVENTORY_CSV_PATH = "src/main/resources/products/revit/inventory.csv";
+
+    public static final String PRODUCT_CSV_PATH = "/products/revit/products.csv";
+    public static final String INVENTORY_CSV_PATH = "/products/revit/inventory.csv";
 
     private final RevitService revitService;
 
     @GetMapping("/downloadProduct")
-    public ResponseEntity<Resource> downloadProductFile() {
+    public ResponseEntity<?> downloadProductFile() {
 
         File file = new File(PRODUCT_CSV_PATH);
         if (!file.exists())
-            revitService.parseToProductsCsv(REVIT_REQUEST);
+            revitService.parseToProductsCsv();
         return revitService.getResourceResponseEntity(PRODUCT_CSV_PATH);
     }
 
     @GetMapping("/downloadInventory")
-    public ResponseEntity<Resource> downloadInventoryFile() {
+    public ResponseEntity<?> downloadInventoryFile() {
 
         File file = new File(INVENTORY_CSV_PATH);
         if (!file.exists())
-            revitService.parseToProductsCsv(REVIT_REQUEST);
+            revitService.parseToProductsCsv();
         return revitService.getResourceResponseEntity(INVENTORY_CSV_PATH);
     }
 

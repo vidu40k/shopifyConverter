@@ -1,6 +1,8 @@
 package shopify.converter.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -12,6 +14,8 @@ import shopify.converter.model.Motonational.MotonationalProduct;
 import shopify.converter.service.ProductService;
 import shopify.converter.service.motonational.MotonationalService;
 import shopify.converter.service.revit.RevitService;
+import shopify.converter.util.FileCleanupScheduler;
+import shopify.converter.util.FileUtil;
 
 import java.net.MalformedURLException;
 import java.nio.file.Path;
@@ -26,8 +30,17 @@ public class ProductController {
 
     private static final String PASSWORD = "rouzer";
 
+    private FileCleanupScheduler fileCleanupScheduler;
+
+    @Autowired
+    public ProductController(FileCleanupScheduler fileCleanupScheduler) {
+        this.fileCleanupScheduler = fileCleanupScheduler;
+    }
+
     @GetMapping("/index")
     public String getPage() {
+
+        fileCleanupScheduler.deleteFilesAfterDelay();
         return "main";
     }
 

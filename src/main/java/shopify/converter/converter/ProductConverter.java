@@ -40,6 +40,7 @@ public abstract class ProductConverter {
                 insideTag = false;
                 result.append(currentTag);
                 result.append(currentChar);
+                continue;
             }
 
             if (insideTag) {

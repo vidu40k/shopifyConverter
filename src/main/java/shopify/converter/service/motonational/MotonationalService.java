@@ -55,11 +55,33 @@ public class MotonationalService extends ProductService {
 
         try {
             var fileList = downloadExternalCsv();
+//            List<String> fileList = new ArrayList<>();
+//            fileList.add("initialData/motonational/FalcoBoot-product-export-21-12-2023-1703118963752.csv");
+//            fileList.add("initialData/motonational/Kabuto-product-export-21-12-2023-1703121210293.csv");
+//            fileList.add("initialData/motonational/Crocbite_ProductCSV_5-12-23.csv");
+//            fileList.add("initialData/motonational/Bobster_ProductCSV_5-12-23.csv");
+//            fileList.add("initialData/motonational/Airoh-product-export-21-12-2023-1703113161643.csv");
+//            fileList.add("initialData/motonational/Lok-Up-product-export-21-12-2023-1703122402593.csv");
+//            fileList.add("initialData/motonational/CUBE-product-export-21-12-2023-1703115647290.csv");
+//            fileList.add("initialData/motonational/Motodry-product-export-21-12-2023-1703123181623.csv");
+//            fileList.add("initialData/motonational/Five-Gloves-product-export-21-12-2023-1703117676003.csv");
+//            fileList.add("initialData/motonational/MotoPlus_ProductCSV_5-12-23.csv");
+//            fileList.add("initialData/motonational/MX-Net-product-export-21-12-2023-1703124027448.csv");
+//            fileList.add("initialData/motonational/RXT-product-export-21-12-2023-1703130542620.csv");
+//            fileList.add("initialData/motonational/Shad-product-export-21-12-2023-1703128792741.csv");
+//            fileList.add("initialData/motonational/TBR-product-export-21-12-2023-1703131291545.csv");
+//            fileList.add("initialData/motonational/ZanHeadgear_ProductCSV_5-12-23.csv");
+//            fileList.add("initialData/motonational/Zero-product-export-21-12-2023-1703132384235.csv");
 
-//            for (String filePath : fileList){  // download in one file
+
+            // ------------------------------------------------- // download in one file
+//            List<MotonationalProduct> motonationalProducts = new ArrayList<>();
+//            for (String filePath : fileList){
 //                motonationalProducts.addAll(readCsvFile(filePath));
 //            }
-//            saveCsvFile(new ArrayList<>(motonationalProducts), motivationalConverter, MOTONATIONAL_PRODUCTS_CSV, MOTONATIONAL_INVENTORY_CSV);
+//            saveCsvFile(new ArrayList<>(motonationalProducts), motivationalConverter, "products.csv", "inventory.csv");
+            // ------------------------------------------------- //
+
 
             List<String> productPaths = new ArrayList<>();
             List<String> inventoryPaths = new ArrayList<>();
@@ -85,7 +107,9 @@ public class MotonationalService extends ProductService {
             productFiles.put(INVENTORY_FILE_TYPE, inventoryPaths);
 
 
-        } catch (IOException | GeneralSecurityException e) {
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (GeneralSecurityException e) {
             throw new RuntimeException(e);
         }
         return productFiles;
@@ -123,10 +147,10 @@ public class MotonationalService extends ProductService {
 
         Map<String, String> vendors = new HashMap<>(
                 Map.of(
-                "Airoh", "https://drive.google.com/drive/folders/1ObJH7Zq07dqLzk26x7fYpLJ-BL55DOMX",
-                "Five Gloves", "https://drive.google.com/drive/folders/14OKsESt6JcsSQL_d-lM8-tujxquWTTTK",
-                "SHAD", "https://drive.google.com/drive/folders/1jVLuxUN_ABca6NI-GrrUQFzjNJcWitOx",
-                "Falco", "https://drive.google.com/drive/folders/1vElcqlwhGnQwdj4XxH8d67txND2iGrn5")
+                        "Airoh", "https://drive.google.com/drive/folders/1ObJH7Zq07dqLzk26x7fYpLJ-BL55DOMX",
+                        "Five Gloves", "https://drive.google.com/drive/folders/14OKsESt6JcsSQL_d-lM8-tujxquWTTTK",
+                        "SHAD", "https://drive.google.com/drive/folders/1jVLuxUN_ABca6NI-GrrUQFzjNJcWitOx",
+                        "Falco", "https://drive.google.com/drive/folders/1vElcqlwhGnQwdj4XxH8d67txND2iGrn5")
         );
 
         vendors.put("TWOBROTHERS", "https://drive.google.com/drive/folders/15y50FOHqvdQWuPQnHE7T0x7so6yFUTe4");

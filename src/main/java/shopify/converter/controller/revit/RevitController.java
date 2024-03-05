@@ -1,7 +1,6 @@
 package shopify.converter.controller.revit;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,7 +9,6 @@ import shopify.converter.controller.ProductController;
 import shopify.converter.service.revit.RevitService;
 
 import java.io.File;
-import java.util.Collections;
 
 @Controller
 @RequestMapping("converter/revit")

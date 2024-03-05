@@ -6,6 +6,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @Component
 public class FileCleanupScheduler {
 
@@ -15,7 +16,7 @@ public class FileCleanupScheduler {
         filePaths.add(filePath);
     }
 
-    @Scheduled(fixedDelay = 120000)
+    @Scheduled(fixedDelay = 1200000)
     public void deleteFilesAfterDelay() {
         for (String filePath : filePaths) {
             File fileToDelete = new File(filePath);

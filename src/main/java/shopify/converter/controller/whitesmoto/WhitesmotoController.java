@@ -17,27 +17,27 @@ import java.util.Collections;
 @RequiredArgsConstructor
 public class WhitesmotoController extends ProductController {
 
-//    public static final String PRODUCT_CSV_PATH = "src/main/resources/products/whitesmoto/products.csv";
-//    public static final String INVENTORY_CSV_PATH = "src/main/resources/products/whitesmoto/inventoryExampl.csv";
-//    private final WhitesmotoService whitesmotoService;
+    public static final String PRODUCT_CSV_PATH = "src/main/resources/products/whitesmoto/products.csv";
+    public static final String INVENTORY_CSV_PATH = "src/main/resources/products/whitesmoto/inventory.csv";
+    private final WhitesmotoService whitesmotoService;
 
-//    @GetMapping("/downloadProduct")
-//    public ResponseEntity<?> downloadProductFile() {
-//
-//        File file = new File(PRODUCT_CSV_PATH);
-//        if (!file.exists())
-//            whitesmotoService.parseToProductsCsv();
-//        return whitesmotoService.getResourceResponseEntity(Collections.singletonList(PRODUCT_CSV_PATH));
-//    }
-//
-//    @GetMapping("/downloadInventory")
-//    public ResponseEntity<?> downloadInventoryFile() {
-//
-//        File file = new File(INVENTORY_CSV_PATH);
-//        if (!file.exists())
-//            whitesmotoService.parseToProductsCsv();
-//        return whitesmotoService.getResourceResponseEntity(Collections.singletonList(INVENTORY_CSV_PATH));
-//    }
+    @GetMapping("/downloadProduct")
+    public ResponseEntity<?> downloadProductFile() {
+
+        File file = new File(PRODUCT_CSV_PATH);
+        if (!file.exists())
+            whitesmotoService.parseToProductsCsv();
+        return whitesmotoService.getResourceResponseEntity(PRODUCT_CSV_PATH);
+    }
+
+    @GetMapping("/downloadInventory")
+    public ResponseEntity<?> downloadInventoryFile() {
+
+        File file = new File(INVENTORY_CSV_PATH);
+        if (!file.exists())
+            whitesmotoService.parseToProductsCsv();
+        return whitesmotoService.getResourceResponseEntity(INVENTORY_CSV_PATH);
+    }
 
 
 }

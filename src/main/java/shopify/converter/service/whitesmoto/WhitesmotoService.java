@@ -34,29 +34,29 @@ public class WhitesmotoService extends ProductService {
 
     private static final String INIT_LOGIN = "https://kratos.whitesplatform.com/self-service/login/api";
     private static final String GET_ACCESS_TOKEN = "https://auth.whitesplatform.com/v1/access_token";
-    private static final String CREATE_CURSOR_PRODUCT_QTY = "https://api-test.whitesplatform.com/v1/table/product_qty";
+    private static final String CREATE_CURSOR_PRODUCT_QTY = "https://api-test.whitesplatform.com/v1/table/product";
     private static final String GET_CURSOR_DATA = "https://api-test.whitesplatform.com/v1/cursor/";
     private static final String GET_PRODUCT = "https://api-test.whitesplatform.com/v1/table/product/";
     private static final String COMPANY_CODE = "wpadev_motoheadz";
 
     @Value("${whitesmoto_password}")
-    private static String PASSWORD;
+    private String PASSWORD;
     @Value("${whitesmoto_password_identifier}")
-    private static String PASSWORD_IDENTIFIER;
+    private String PASSWORD_IDENTIFIER;
     private String accessToken;
 
     private final WhitesmotoConverter whitesmotoConverter;
 
     @Override
-    public Map<String,List<String>> parseToProductsCsv() {
+    public Map<String, List<String>> parseToProductsCsv() {
 
         List<WhitesmotoProduct> whitesmotoProducts = getProducts();
 
-//        saveCsvFile(new ArrayList<>(whitesmotoProducts),whitesmotoConverter, WhitesmotoController.PRODUCT_CSV_PATH,WhitesmotoController.INVENTORY_CSV_PATH);
-//
-        Map<String,List<String>> map = new HashMap<>();
-//        map.put("products",new ArrayList<>(List.of(WhitesmotoController.PRODUCT_CSV_PATH)));
-//        map.put("inventory",new ArrayList<>(List.of(WhitesmotoController.INVENTORY_CSV_PATH)));
+        saveCsvFile(new ArrayList<>(whitesmotoProducts), whitesmotoConverter, WhitesmotoController.PRODUCT_CSV_PATH, WhitesmotoController.INVENTORY_CSV_PATH);
+
+        Map<String, List<String>> map = new HashMap<>();
+        map.put("products", new ArrayList<>(List.of(WhitesmotoController.PRODUCT_CSV_PATH)));
+        map.put("inventory", new ArrayList<>(List.of(WhitesmotoController.INVENTORY_CSV_PATH)));
         return map;
     }
 
@@ -65,8 +65,8 @@ public class WhitesmotoService extends ProductService {
         refreshAccessToken();
 
         var cursorId = createProductsCursor();
-        var productsQty = getCursorData(cursorId);//todo many pages
-        var products = getProductsByCodes(productsQty);
+        var products = getCursorData(cursorId);//todo many pages
+
 
         return products;
     }
@@ -89,8 +89,11 @@ public class WhitesmotoService extends ProductService {
 
                         String responseBody = EntityUtils.toString(entity);
                         ObjectMapper objectMapper = new ObjectMapper();
-                        products.add(objectMapper.readValue(responseBody, new TypeReference<>() {
-                        }));
+
+                        var product = objectMapper.readValue(responseBody, WhitesmotoProduct.class);
+
+
+                        products.add(product);
                     }
                 }
             } catch (IOException e) {
@@ -103,9 +106,9 @@ public class WhitesmotoService extends ProductService {
     }
 
 
-    private List<ProductQty> getCursorData(String cursorId) {
+    private List<WhitesmotoProduct> getCursorData(String cursorId) {
 
-        List<ProductQty> productQtyList = new ArrayList<>();
+        List<WhitesmotoProduct> products = new ArrayList<>();
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpGet request = new HttpGet(GET_CURSOR_DATA + cursorId);
 
@@ -119,15 +122,13 @@ public class WhitesmotoService extends ProductService {
 
                     String responseBody = EntityUtils.toString(entity);
                     ObjectMapper objectMapper = new ObjectMapper();
-
-                   productQtyList.add(objectMapper.readValue(responseBody, new TypeReference<>() {
-                   }));
+                    products = objectMapper.readValue(responseBody, new TypeReference<>() {});
                 }
             }
         } catch (IOException e) {
             throw new RuntimeException("Request error: " + e.getMessage(), e);
         }
-        return productQtyList;
+        return products;
 
     }
 
@@ -239,7 +240,6 @@ public class WhitesmotoService extends ProductService {
         }
         return null;
     }
-
 
 
 }

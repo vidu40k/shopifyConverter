@@ -30,7 +30,6 @@ public class RevitConverter extends ProductConverter {
                     .toList();
 
             for (var variant : revitProduct.getVariants()) {
-
                 inventorySchemas.add(createInventorySchema(variant, revitProduct, optionsName));
             }
         }

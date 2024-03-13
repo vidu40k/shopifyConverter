@@ -63,9 +63,9 @@ public class InventorySchema implements CSVSchema {
     private Integer committed;
 
     @JsonProperty("Available")
-    private Integer available;
+    private String available;
 
     @JsonProperty("On hand")
-    private Integer onHand;
+    private String onHand;
 
 }

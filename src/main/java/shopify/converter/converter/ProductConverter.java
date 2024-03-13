@@ -3,6 +3,7 @@ package shopify.converter.converter;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import shopify.converter.model.VendorProduct;
 import shopify.converter.schema.InventorySchema;
 import shopify.converter.schema.ProductSchema;
@@ -22,6 +23,7 @@ public abstract class ProductConverter {
         stringToConvert = replaceQuotesInsideTags(stringToConvert);
         stringToConvert = stringToConvert.replaceAll("\\\\n", "");
         stringToConvert = stringToConvert.replace("\"", "\"\"");
+        stringToConvert = stringToConvert.replaceAll(",","/");
         return "\"" + stringToConvert + "\"";
     }
 
@@ -57,6 +59,19 @@ public abstract class ProductConverter {
         return result.toString();
     }
 
+
+    public String extractTextFromHTML(String html) {
+        StringBuilder textContent = new StringBuilder();
+
+        Document doc = Jsoup.parse(html);
+
+        Elements elements = doc.select(":matchesOwn((?i)\\b\\w+\\b)");
+        for (Element element : elements) {
+            textContent.append(element.text()).append(" ");
+        }
+
+        return textContent.toString().trim();
+    }
     protected String replaceHeadersWithH6(String htmlBody) {
         htmlBody = htmlBody.replaceAll("<h2", "<h6");
         htmlBody = htmlBody.replaceAll("</h2>", "</h6>");

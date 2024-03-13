@@ -55,6 +55,7 @@ public class MotonationalService extends ProductService {
 
         try {
             var fileList = downloadExternalCsv();
+
 //            List<String> fileList = new ArrayList<>();
 //            fileList.add("initialData/motonational/FalcoBoot-product-export-21-12-2023-1703118963752.csv");
 //            fileList.add("initialData/motonational/Kabuto-product-export-21-12-2023-1703121210293.csv");
@@ -92,6 +93,8 @@ public class MotonationalService extends ProductService {
 
                 var fileName = extractFileNameFromPath(filePath);
 
+
+
                 var productPath = MOTONATIONAL_PRODUCTS_FOLDER + PRODUCTS_FILE_TYPE + "-" + fileName + ".csv";
                 var inventoryPath = MOTONATIONAL_PRODUCTS_FOLDER + INVENTORY_FILE_TYPE + "-" + fileName + ".csv";
                 productPaths.add(productPath);
@@ -107,9 +110,7 @@ public class MotonationalService extends ProductService {
             productFiles.put(INVENTORY_FILE_TYPE, inventoryPaths);
 
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (GeneralSecurityException e) {
+        } catch (IOException | GeneralSecurityException e) {
             throw new RuntimeException(e);
         }
         return productFiles;

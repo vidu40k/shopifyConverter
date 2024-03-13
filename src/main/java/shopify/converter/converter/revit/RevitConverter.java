@@ -54,8 +54,8 @@ public class RevitConverter extends ProductConverter {
                 .incoming(null)
                 .unavailable(null)
                 .committed(null)
-                .available(variant.getAvailable() ? 10 : 0)
-                .onHand(variant.getAvailable() ? 10 : 0)
+                .available(variant.getAvailable() ? "10" : "0")
+                .onHand(variant.getAvailable() ? "10" : "0")
                 .build();
     }
 

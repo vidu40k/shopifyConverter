@@ -63,6 +63,30 @@ public class MotivationalConverter extends ProductConverter {
         List<MotonationalProduct> variations = productsByTypes.get("variation");
         List<MotonationalProduct> simpleProducts = productsByTypes.get("simple");
 
+//        int counter = 0;
+//        for (InventoryCustom inventoryCustom : inventory) {
+//
+//            var products = vendorProducts.stream()
+//                    .map(product -> (MotonationalProduct) product)
+//                    .toList();
+//
+//           var productOptional = products.stream().filter(motonationalProduct -> motonationalProduct.getSku().equals(inventoryCustom.getInventoryId())).findFirst();
+//
+//           if (productOptional.isPresent()){
+//               var product = productOptional.get();
+//               var inventory =  createInventorySchema(product,createParentInventorySchema(product));
+//               inventory.setAvailable(Integer.valueOf(inventoryCustom.getFiveToFivePlus()));
+//               inventory.setOnHand(Integer.valueOf(inventoryCustom.getFiveToFivePlus()));
+//               inventorySchemas.add(inventory);
+//
+//           }
+//           else {
+//
+//               System.out.println( ++counter  + " unusedInventoryId: " + inventoryCustom.getInventoryId());
+//           }
+//        }
+//        List<InventorySchema> tempSchemas = new ArrayList<>();
+
         // Для каждого главного продукта находим соответствующие вариации
         for (MotonationalProduct mainProduct : mainProducts) {
 
@@ -80,9 +104,64 @@ public class MotivationalConverter extends ProductConverter {
             inventorySchemas.add(createSimpleInventorySchema(simpleProduct));
         }
 
-//        int coubter = 0;
-//        for (InventoryCustom inventoryCustom : unusedInv){
-//            System.out.println( ++coubter + "/ unusedInvId " + inventoryCustom.getInventoryId());
+//
+//        for (InventoryCustom inventoryCustom : inventory) {
+//
+//            var tmp = tempSchemas.stream().filter(inventorySchema -> inventorySchema.getSku().equals(inventoryCustom.getInventoryId())).findFirst();
+//
+//            if (tmp.isPresent()) {
+//
+//                var inv = tmp.get();
+//                InventorySchema invSchema = InventorySchema
+//                        .builder()
+//                        .handle(inv.getHandle())
+//                        .title(convertString(inventoryCustom.getDescription()))
+//                        .option1Name(inv.getOption1Name())
+//                        .option1Value(inv.getOption1Value())
+//                        .option2Name(inv.getOption2Name())
+//                        .option2Value(inv.getOption2Value())
+//                        .option3Name(inv.getOption3Name())
+//                        .option3Value(inv.getOption3Value())
+//                        .sku(inv.getSku())
+//                        .hsCode("")
+//                        .coo("")
+//                        .location("Distribution Warehouse")
+//                        .incoming(null)
+//                        .unavailable(null)
+//                        .committed(null)
+//                        .available(Integer.parseInt(inventoryCustom.getFiveToFivePlus()))
+//                        .onHand(Integer.parseInt(inventoryCustom.getFiveToFivePlus()))
+//                        .build();
+//
+//                inventorySchemas.add(invSchema);
+//
+//            } else {
+//
+//                InventorySchema invSchema = InventorySchema
+//                        .builder()
+//                        .handle("")
+//                        .title(convertString(inventoryCustom.getDescription()))
+//                        .option1Name("")
+//                        .option1Value("")
+//                        .option2Name("")
+//                        .option2Value("")
+//                        .option3Name("")
+//                        .option3Value("")
+//                        .sku(inventoryCustom.getInventoryId())
+//                        .hsCode("")
+//                        .coo("")
+//                        .location("Distribution Warehouse")
+//                        .incoming(null)
+//                        .unavailable(null)
+//                        .committed(null)
+//                        .available(Integer.parseInt(inventoryCustom.getFiveToFivePlus()))
+//                        .onHand(Integer.parseInt(inventoryCustom.getFiveToFivePlus()))
+//                        .build();
+//
+//                inventorySchemas.add(invSchema);
+//            }
+//
+//
 //        }
 
         return inventorySchemas;
@@ -191,7 +270,6 @@ public class MotivationalConverter extends ProductConverter {
 //
 //        }
 
-
         return InventorySchema.builder()
                 .handle(createHandle(motonationalProduct.getName()))
                 .title(convertString(motonationalProduct.getName()))
@@ -208,38 +286,39 @@ public class MotivationalConverter extends ProductConverter {
                 .incoming(null)
                 .unavailable(null)
                 .committed(null)
-                .available(isHasPrice(motonationalProduct) ? 10 : 0)
-                .onHand(isHasPrice(motonationalProduct) ? 10 : 0)
+                .available(motonationalProduct.getStock())
+                .onHand(motonationalProduct.getStock())
                 .build();
-
 
     }
 
+    private Integer getQty(String stock) {
+        return stock.isEmpty() ? 0 : Integer.parseInt(stock);
+    }
     // --------------------------------------------------------
 
-//    private static int counter = 0;
-//
-//    private List<InventoryCustom> getCustomInventory() {
-//
-//        String csvFilePath = "C:\\Users\\37544\\IdeaProjects\\ShopifyConverter\\tokens\\CSV-inventory.csv";
-//
-//        CsvMapper csvMapper = new CsvMapper();
-//        CsvSchema schema = CsvSchema.emptySchema().withHeader();
-//        ObjectReader reader = csvMapper.readerFor(InventoryCustom.class).with(schema);
-//
-//        List<InventoryCustom> products = new ArrayList<>();
-//        try (MappingIterator<InventoryCustom> iterator = reader.readValues(new File(csvFilePath))) {
-//            while (iterator.hasNext()) {
-//                InventoryCustom product = iterator.next();
-//                products.add(product);
-//            }
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//        return products;
-//    }
-//
-//    // --------------------------------------------------------
+
+    private List<InventoryCustom> getCustomInventory() {
+
+        String csvFilePath = "C:\\Users\\37544\\IdeaProjects\\ShopifyConverter\\tokens\\CSV-inventory.csv";
+
+        CsvMapper csvMapper = new CsvMapper();
+        CsvSchema schema = CsvSchema.emptySchema().withHeader();
+        ObjectReader reader = csvMapper.readerFor(InventoryCustom.class).with(schema);
+
+        List<InventoryCustom> products = new ArrayList<>();
+        try (MappingIterator<InventoryCustom> iterator = reader.readValues(new File(csvFilePath))) {
+            while (iterator.hasNext()) {
+                InventoryCustom product = iterator.next();
+                products.add(product);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return products;
+    }
+
+    // --------------------------------------------------------
 
     private InventorySchema createParentInventorySchema(MotonationalProduct motonationalProduct) {
 
@@ -250,39 +329,10 @@ public class MotivationalConverter extends ProductConverter {
                 .build();
     }
 
-//    private List<InventoryCustom> inventory = getCustomInventory();
-//    private List<InventoryCustom> unusedInv = getCustomInventory();
+    private List<InventoryCustom> inventory = getCustomInventory();
+    private List<InventoryCustom> unusedInv = getCustomInventory();
 
     private InventorySchema createInventorySchema(MotonationalProduct motonationalProduct, InventorySchema parentInventoryProduct) {
-
-//        Optional<InventoryCustom> product = inventory.stream().filter(inventoryCustom -> inventoryCustom.getInventoryId().equals(motonationalProduct.getSku())).findFirst();
-//
-//        InventoryCustom prod;
-//        if (!product.isEmpty()) {
-//            System.out.println(++counter + "/  not found " + motonationalProduct.getSku());
-//            prod = product.get();
-//            unusedInv = unusedInv.stream().filter(inventoryCustom -> !inventoryCustom.getInventoryId().equals(motonationalProduct.getSku())).toList();
-//
-//            return InventorySchema.builder()
-//                    .handle(parentInventoryProduct.getHandle())
-//                    .title(parentInventoryProduct.getTitle())
-//                    .option1Name(motonationalProduct.getAttribute1Name())
-//                    .option1Value(motonationalProduct.getAttribute1Values())
-//                    .option2Name(motonationalProduct.getAttribute2Name())
-//                    .option2Value(motonationalProduct.getAttribute2Values())
-//                    .option3Name(motonationalProduct.getAttribute3Name())
-//                    .option3Value(motonationalProduct.getAttribute3Values())
-//                    .sku(motonationalProduct.getSku())
-//                    .hsCode("")
-//                    .coo("")
-//                    .location("Distribution Warehouse")
-//                    .incoming(null)
-//                    .unavailable(null)
-//                    .committed(null)
-//                    .available(Integer.parseInt(prod.getFiveToFivePlus()))
-//                    .onHand(Integer.parseInt(prod.getFiveToFivePlus()))
-//                    .build();
-//        }
 
         return InventorySchema.builder()
                 .handle(parentInventoryProduct.getHandle())
@@ -300,9 +350,30 @@ public class MotivationalConverter extends ProductConverter {
                 .incoming(null)
                 .unavailable(null)
                 .committed(null)
-                .available(isHasPrice(motonationalProduct) ? 10 : 0)
-                .onHand(isHasPrice(motonationalProduct) ? 10 : 0)
+                .available(motonationalProduct.getStock())
+                .onHand(motonationalProduct.getStock())
                 .build();
+//
+//
+//        return InventorySchema.builder()
+//                .handle(parentInventoryProduct.getHandle())
+//                .title(parentInventoryProduct.getTitle())
+//                .option1Name(motonationalProduct.getAttribute1Name())
+//                .option1Value(motonationalProduct.getAttribute1Values())
+//                .option2Name(motonationalProduct.getAttribute2Name())
+//                .option2Value(motonationalProduct.getAttribute2Values())
+//                .option3Name(motonationalProduct.getAttribute3Name())
+//                .option3Value(motonationalProduct.getAttribute3Values())
+//                .sku(motonationalProduct.getSku())
+//                .hsCode("")
+//                .coo("")
+//                .location("Distribution Warehouse")
+//                .incoming(null)
+//                .unavailable(null)
+//                .committed(null)
+//                .available(motonationalProduct.getSku().isEmpty() ? 1808 : 505)
+//                .onHand(motonationalProduct.getSku().isEmpty() ? 1808 : 505)
+//                .build();
 
     }
 
@@ -469,19 +540,6 @@ public class MotivationalConverter extends ProductConverter {
         return "";
     }
 
-    public String extractTextFromHTML(String html) {
-        StringBuilder textContent = new StringBuilder();
-
-        Document doc = Jsoup.parse(html);
-
-        // Находим все текстовые элементы в документе
-        Elements elements = doc.select(":matchesOwn((?i)\\b\\w+\\b)");
-        for (Element element : elements) {
-            textContent.append(element.text()).append(" ");
-        }
-
-        return textContent.toString().trim();
-    }
 
     public String getFirstImage(String images) {
         var imagesList = List.of(images.split(" "));

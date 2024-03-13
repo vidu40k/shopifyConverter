@@ -1,6 +1,5 @@
 package shopify.converter.model.whitesmoto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -130,7 +129,7 @@ public class WhitesmotoProduct extends VendorProduct {
     private List<Image> images;
 
     @JsonProperty("rich_description")
-    private String richDescription;
+    private String richDescription = "";
 
     @JsonProperty("your_price")
     private String yourPrice;

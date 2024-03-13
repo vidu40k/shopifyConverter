@@ -12,7 +12,7 @@ RUN addgroup -S app && adduser -S app -G app
 USER app
 
 USER root
-RUN mkdir -p /tokens /products/motonational /products/revit /initialData/motonational && \
+RUN mkdir -p /tokens /products/motonational /products/whitesmoto /products/revit /initialData/motonational && \
     chmod -R 777 /tokens /products /initialData
 
 # Копирование файла credentials.json внутрь контейнера

@@ -19,7 +19,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.springframework.stereotype.Service;
 import shopify.converter.controller.motonational.MotonationalController;
-import shopify.converter.converter.motonational.MotivationalConverter;
+import shopify.converter.converter.motonational.MotonationalConverter;
 import shopify.converter.model.Motonational.MotonationalProduct;
 import shopify.converter.service.ProductService;
 import shopify.converter.util.FileCleanupScheduler;
@@ -45,7 +45,7 @@ public class MotonationalService extends ProductService {
     public static final String PRODUCTS_FILE_TYPE = MotonationalController.PRODUCTS_FILE_TYPE;
     public static final String INVENTORY_FILE_TYPE = MotonationalController.INVENTORY_FILE_TYPE;
 
-    private final MotivationalConverter motivationalConverter;
+    private final MotonationalConverter motonationalConverter;
     private final FileCleanupScheduler fileCleanupScheduler;
 
     @Override
@@ -103,7 +103,7 @@ public class MotonationalService extends ProductService {
                 fileCleanupScheduler.addFilePath(productPath);
                 fileCleanupScheduler.addFilePath(inventoryPath);
 
-                saveCsvFile(new ArrayList<>(motonationalProducts), motivationalConverter, productPath, inventoryPath);
+                saveCsvFile(new ArrayList<>(motonationalProducts), motonationalConverter, productPath, inventoryPath);
             }
 
             productFiles.put(PRODUCTS_FILE_TYPE, productPaths);

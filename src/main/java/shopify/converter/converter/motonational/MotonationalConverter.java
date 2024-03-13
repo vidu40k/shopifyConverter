@@ -1,27 +1,16 @@
 package shopify.converter.converter.motonational;
 
-import com.fasterxml.jackson.databind.MappingIterator;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 import shopify.converter.converter.ProductConverter;
-import shopify.converter.model.Motonational.InventoryCustom;
 import shopify.converter.model.Motonational.MotonationalProduct;
 import shopify.converter.model.VendorProduct;
 import shopify.converter.schema.InventorySchema;
 import shopify.converter.schema.ProductSchema;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 @Component
-public class MotivationalConverter extends ProductConverter {
+public class MotonationalConverter extends ProductConverter {
 
 
     private Map<String, List<MotonationalProduct>> getProductsByType(List<VendorProduct> vendorProducts) {
@@ -298,25 +287,25 @@ public class MotivationalConverter extends ProductConverter {
     // --------------------------------------------------------
 
 
-    private List<InventoryCustom> getCustomInventory() {
-
-        String csvFilePath = "C:\\Users\\37544\\IdeaProjects\\ShopifyConverter\\tokens\\CSV-inventory.csv";
-
-        CsvMapper csvMapper = new CsvMapper();
-        CsvSchema schema = CsvSchema.emptySchema().withHeader();
-        ObjectReader reader = csvMapper.readerFor(InventoryCustom.class).with(schema);
-
-        List<InventoryCustom> products = new ArrayList<>();
-        try (MappingIterator<InventoryCustom> iterator = reader.readValues(new File(csvFilePath))) {
-            while (iterator.hasNext()) {
-                InventoryCustom product = iterator.next();
-                products.add(product);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return products;
-    }
+//    private List<InventoryCustom> getCustomInventory() {
+//
+//        String csvFilePath = "C:\\Users\\37544\\IdeaProjects\\ShopifyConverter\\tokens\\CSV-inventory.csv";
+//
+//        CsvMapper csvMapper = new CsvMapper();
+//        CsvSchema schema = CsvSchema.emptySchema().withHeader();
+//        ObjectReader reader = csvMapper.readerFor(InventoryCustom.class).with(schema);
+//
+//        List<InventoryCustom> products = new ArrayList<>();
+//        try (MappingIterator<InventoryCustom> iterator = reader.readValues(new File(csvFilePath))) {
+//            while (iterator.hasNext()) {
+//                InventoryCustom product = iterator.next();
+//                products.add(product);
+//            }
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//        return products;
+//    }
 
     // --------------------------------------------------------
 
@@ -329,8 +318,8 @@ public class MotivationalConverter extends ProductConverter {
                 .build();
     }
 
-    private List<InventoryCustom> inventory = getCustomInventory();
-    private List<InventoryCustom> unusedInv = getCustomInventory();
+//    private List<InventoryCustom> inventory = getCustomInventory();
+//    private List<InventoryCustom> unusedInv = getCustomInventory();
 
     private InventorySchema createInventorySchema(MotonationalProduct motonationalProduct, InventorySchema parentInventoryProduct) {
 
